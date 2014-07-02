@@ -1,4 +1,4 @@
 /target/
 
 #ignore myauth, personal information contained
-/src/main/java/myauth.yml
+myauth.yml
