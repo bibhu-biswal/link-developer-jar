@@ -37,7 +37,7 @@ public class TestAuth extends TestCase {
 		try {
 			input = new FileInputStream(new File("src/main/java/myauth.yml"));
 		} catch (FileNotFoundException e) {
-			System.out.println("File myauth.yml not found. Must have a myauth.yml file in src/main/java/client");
+			fail("File myauth.yml not found. Must have a myauth.yml file in src/main/java/client");
 		}
 		map = (HashMap<String, String>) obj.load(input);
 	}
