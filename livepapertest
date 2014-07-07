@@ -1,0 +1,60 @@
+#!/bin/sh
+
+
+function help () {
+		echo "livepapertest - Automatically downloads dependencies and tests the sample lpp java client."
+		echo ""
+		echo "livepapertest init - Sets up the testing environment, downloads dependencies, and adds them to the classpath"
+		echo "livepapertest test - Tests the sample lpp client"
+}
+
+JCORE_LINK="http://central.maven.org/maven2/com/sun/jersey/jersey-core/1.17.1/jersey-core-1.17.1.jar"
+YAML_LINK="http://central.maven.org/maven2/org/yaml/snakeyaml/1.13/snakeyaml-1.13.jar"
+JCLIENT_LINK="http://central.maven.org/maven2/com/sun/jersey/jersey-client/1.18.1/jersey-client-1.18.1.jar"
+LINK="http://central.maven.org/maven2/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.1.1.jar"
+H_CLIENT="http://central.maven.org/maven2/org/apache/httpcomponents/httpclient/4.1.1/httpclient-4.1.1.jar"
+ENCODE="http://central.maven.org/maven2/commons-codec/commons-codec/1.9/commons-codec-1.9.jar"
+JUNIT="http://central.maven.org/maven2/junit/junit/4.11/junit-4.11.jar"
+
+
+if [ $1 ]
+then 
+	case "$1" in
+	init)
+	  echo "Downloading jars..."
+	  curl -sO $JCORE_LINK
+      curl -sO $JCLIENT_LINK	  
+	  curl -sO $YAML_LINK
+      curl -sO $LINK
+	  curl -sO $H_CLIENT
+	  curl -sO $ENCODE
+	  curl -sO $JUNIT
+	  mkdir dependencies
+	  mv commons-codec-1.9.jar dependencies
+	  mv httpclient-4.1.1.jar dependencies
+      mv jersey-client-1.18.1.jar dependencies
+	  mv jersey-core-1.17.1.jar dependencies
+	  mv jsr311-api-1.1.1.jar dependencies 
+ 	  mv snakeyaml-1.13.jar dependencies
+	  mv junit-4.11.jar dependencies 
+	  echo "Environment setup done!"
+	 ;;
+	 test)
+	  javac -cp "./dependencies/*" ./src/main/java/*.java
+	  javac -cp "./dependencies/*" ./src/test/java/TestAuth.java ./src/main/java/*.java 
+	  echo "Compilation done!"
+	  java -Dhttps.proxyHost=web-proxy.sdd.hp.com -Dhttps.proxyPort=8088 -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestAuth
+	  
+	  
+	  	
+	 ;;
+	 *)
+		help;	
+	 ;;
+    esac
+
+
+else
+	help;
+fi
+

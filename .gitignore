@@ -2,3 +2,6 @@
 
 #ignore myauth, personal information contained
 myauth.yml
+/target/
+/target/
+/target/
