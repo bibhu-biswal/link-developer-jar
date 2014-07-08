@@ -15,7 +15,7 @@ LINK="http://central.maven.org/maven2/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.
 H_CLIENT="http://central.maven.org/maven2/org/apache/httpcomponents/httpclient/4.1.1/httpclient-4.1.1.jar"
 ENCODE="http://central.maven.org/maven2/commons-codec/commons-codec/1.9/commons-codec-1.9.jar"
 JUNIT="http://central.maven.org/maven2/junit/junit/4.11/junit-4.11.jar"
-
+JSON_LINK="http://search.maven.org/remotecontent?filepath=io/fastjson/boon/0.22/boon-0.22.jar";
 
 if [ $1 ]
 then 
@@ -29,6 +29,7 @@ then
 	  curl -sO $H_CLIENT
 	  curl -sO $ENCODE
 	  curl -sO $JUNIT
+	  curl -sO $JSON_LINK
 	  mkdir dependencies
 	  mv commons-codec-1.9.jar dependencies
 	  mv httpclient-4.1.1.jar dependencies
@@ -36,14 +37,15 @@ then
 	  mv jersey-core-1.17.1.jar dependencies
 	  mv jsr311-api-1.1.1.jar dependencies 
  	  mv snakeyaml-1.13.jar dependencies
-	  mv junit-4.11.jar dependencies 
+	  mv junit-4.11.jar dependencies
+	  mv boon-0.22.jar dependencies 
 	  echo "Environment setup done!"
 	 ;;
 	 test)
 	  javac -cp "./dependencies/*" ./src/main/java/*.java
-	  javac -cp "./dependencies/*" ./src/test/java/TestAuth.java ./src/main/java/*.java 
+	  javac -cp "./dependencies/*" ./src/test/java/TestClient.java ./src/main/java/*.java 
 	  echo "Compilation done!"
-	  java -Dhttps.proxyHost=web-proxy.sdd.hp.com -Dhttps.proxyPort=8088 -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestAuth
+	  java -Dhttps.proxyHost=web-proxy.sdd.hp.com -Dhttps.proxyPort=8088 -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestClient
 	  
 	  
 	  	
