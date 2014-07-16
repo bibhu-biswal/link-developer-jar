@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -75,12 +76,33 @@ public class TestClient extends TestCase {
 	}
 	
 	@Test
-	public void testShorten()
+	public void testShorten() throws IOException
 	{
 		test.auth(map);
 		String url = test.shorten("www.google.com");
 		assertNotNull("Must return a non-null String", url);
 	}
+	
+	@Test
+	public void testQRNotAuthorized() throws IOException
+	{
+		byte[] returned = test.qr_bytes("something");
+		if(returned != null)
+			fail("qr_bytes must return null for unauthorized users.");
+	}
+	
+	@Test
+	public void testQR() throws IOException
+	{
+		test.auth(map);
+		byte[] returned = test.qr_bytes("www.google.com");
+		assertNotNull("Must return a non-null byte array", returned);
+		FileOutputStream stream = new FileOutputStream("qrcode.png");
+		stream.write(returned);
+	    stream.close();
+	}
+
+	
 	
 	
 	public static void main(String[] args) throws IOException
