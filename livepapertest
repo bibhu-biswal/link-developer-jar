@@ -50,7 +50,7 @@ then
 	  javac -cp "./dependencies/*" ./src/main/java/*.java
 	  javac -cp "./dependencies/*" ./src/test/java/TestClient.java ./src/main/java/*.java 
 	  echo "Compilation done!"
-	  java -Dhttp.proxyHost=web-proxy.sdd.hp.com -Dhttp.proxyPort=8088 -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestClient
+	  java -Dhttps.proxyHost=web-proxy.sdd.hp.com -Dhttps.proxyPort=8088 -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestClient
 	  
 	  
 	  	
