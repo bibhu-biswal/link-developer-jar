@@ -17,14 +17,14 @@ In order to obtain access credentials register here:  https://link.livepaperdeve
 Live Paper JAR requires an authentication  with id and secret. Obtain your credentials from the registration link above.
 
 ```java
-LivePaper lp = LivePaper.auth({id: "your client id", secret: "your client secret"});
+LivePaper lp = LivePaper.auth("your client id", "your client secret");
 ```
 
 
 ### Shortening URLs
 
 ```java
-String short_url = lp.shorten('http://www.google.com');
+String short_url = lp.shorten("http://www.google.com");
 ```
 
 
@@ -44,7 +44,7 @@ fos.close();
 ```java
 byte[] wm_bytes = lp.watermark_bytes("http://www.hp.com",
                               "http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg");
-FileOutputStream fos = new FileOutputStream("watermark.png");
+FileOutputStream fos = new FileOutputStream("watermark.jpg");
 fos.write(wm_bytes);
 fos.close();
 ```
