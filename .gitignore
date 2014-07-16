@@ -1,6 +1,7 @@
-#ignore myauth, personal information contained
+*.class
+
 myauth.yml
 /target/
+
 qrcode.png
 wm.jpg
-*.class
