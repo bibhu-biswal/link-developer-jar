@@ -58,6 +58,8 @@ then
 	  fi 
 	  echo "Compilation done!"
 	  java -Dhttps.proxyHost=web-proxy.sdd.hp.com -Dhttps.proxyPort=8088 -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestClient
+	  open qrcode.png
+	  open wm.jpg
 	  ;;
 	test_noproxy)
 	  javac -cp "./dependencies/*" ./src/main/java/*.java
@@ -69,7 +71,8 @@ then
 	  fi			  
 	  echo "Compilation done!"
 	  java -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestClient
-	  
+	  open qrcode.png
+	  open wm.jpg
 	 ;;
 	 *)
 		help;	
