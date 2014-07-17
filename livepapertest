@@ -36,7 +36,7 @@ then
 	  curl -sO $JUNIT
 	  curl -sO $JSON_LINK
 	  curl -sO $COMMONS
-	  mkdir dependencies
+	  mkdir -p dependencies
 	  mv commons-codec-1.9.jar dependencies
 	  mv httpclient-4.1.1.jar dependencies
       mv jersey-client-1.18.1.jar dependencies

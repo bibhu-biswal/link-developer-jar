@@ -80,6 +80,7 @@ public class TestClient extends TestCase {
 		test.auth(map);
 		String url = test.shorten("www.google.com");
 		assertNotNull("Must return a non-null String", url);
+		System.out.println(url);
 	}
 	
 	@Test
