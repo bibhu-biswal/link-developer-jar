@@ -32,7 +32,6 @@ public class TestClient extends TestCase {
 	{
 		test = new SampleClient();
 		obj = new Yaml();
-		System.getProperties().put("http.proxySet", "true");
 		try {
 			input = new FileInputStream(new File("src/main/java/myauth.yml"));
 		} catch (FileNotFoundException e) {
@@ -102,7 +101,25 @@ public class TestClient extends TestCase {
 	    stream.close();
 	}
 
+	@Test
+	public void testWatermark() throws IOException, FileNotFoundException {
+		test.auth(map);
+
+		byte[] wm_bytes = test.watermark_bytes("http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg", "http://www.hp.com");
+		assertNotNull("Must return a non-null byte array", wm_bytes);
+	    
+	    FileOutputStream stream = new FileOutputStream("wm.jpg");
+		stream.write(wm_bytes);
+	    stream.close();
+	}
 	
+	@Test
+	public void testWMNotAuthorized() throws IOException
+	{
+		byte[] returned = test.watermark_bytes("something", "something else");
+		if(returned != null)
+			fail("watermark_bytes must return null for unauthorized users.");
+	}
 	
 	
 	public static void main(String[] args) throws IOException

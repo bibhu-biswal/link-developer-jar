@@ -6,6 +6,8 @@ function help () {
 		echo ""
 		echo "livepapertest init - Sets up the testing environment, downloads dependencies, and adds them to the classpath"
 		echo "livepapertest test - Tests the sample lpp client"
+		echo "livepapertest test_noproxy -Tests the sample lpp client without proxies"
+
 }
 
 JCORE_LINK="http://central.maven.org/maven2/com/sun/jersey/jersey-core/1.17.1/jersey-core-1.17.1.jar"
@@ -48,12 +50,26 @@ then
 	 ;;
 	 test)
 	  javac -cp "./dependencies/*" ./src/main/java/*.java
-	  javac -cp "./dependencies/*" ./src/test/java/TestClient.java ./src/main/java/*.java 
+	  javac -cp "./dependencies/*" ./src/test/java/TestClient.java ./src/main/java/*.java
+	  if [ $? -ne 0 ]   #--check if everything is OK
+	  then
+	    echo "Error during compilation"
+	      exit 1
+	  fi 
 	  echo "Compilation done!"
 	  java -Dhttps.proxyHost=web-proxy.sdd.hp.com -Dhttps.proxyPort=8088 -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestClient
+	  ;;
+	test_noproxy)
+	  javac -cp "./dependencies/*" ./src/main/java/*.java
+	  javac -cp "./dependencies/*" ./src/test/java/TestClient.java ./src/main/java/*.java
+	  if [ $? -ne 0 ]  
+	  then
+	    echo "Error during compilation"
+		  exit 1
+	  fi			  
+	  echo "Compilation done!"
+	  java -cp "./dependencies/*:./src/test/java/:./src/main/java/" TestClient
 	  
-	  
-	  	
 	 ;;
 	 *)
 		help;	

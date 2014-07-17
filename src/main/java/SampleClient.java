@@ -48,11 +48,10 @@ public class SampleClient {
 	 */
 	public void auth(String clientID, String secret)
 	{
-		if (token == null)
-		 System.out.println("Unauthorized!"); 
 		
 		 if (clientID == null || secret == null)
 		  	throw new NullPointerException("Null arguments not accepted.");
+		 
 		 
 		authorize(clientID, secret);
 	}
@@ -90,15 +89,41 @@ public class SampleClient {
     }
     
  
-   
-
-	
-    
-    
+    @GET
+    public byte[] watermark_bytes(String imageLoc, String url) throws IOException 
+    {
+    	if (token == null)
+			return null;
+    	
+    	String image = img_upload(imageLoc);
+		Map<String, String> watermark = new HashMap<String, String>();
+		watermark.put("imageURL",image);
+		watermark.put("resolution", "75");
+		watermark.put("strength","10");		
+		String location = createLink("watermark", url, "image", watermark, "watermark");
+		WebResource webResource = createWebResource(location);	
+		ClientResponse response =  webResource.header("Authorization", accessHeader).accept("image/jpeg").get(ClientResponse.class);
+		byte[] bytes = IOUtils.toByteArray(response.getEntityInputStream());
+		return bytes;
+    }
 	
 	//////////////////////////////////// Private helper methods //////////////////////////////////////
 	
-  
+    @POST
+    private String img_upload(String imageLoc) throws IOException
+    {
+    	String url = "https://storage.livepaperapi.com/objects/files";
+    	if(imageLoc.contains(url))
+    		return imageLoc;
+    	WebResource source = createWebResource(imageLoc);		
+		ClientResponse imgResponse =  source.accept("image/jpg").get(ClientResponse.class);
+		byte[] bytes = IOUtils.toByteArray(imgResponse.getEntityInputStream());		
+		
+    	WebResource webResource = createWebResource(url);		
+		ClientResponse response = webResource.header("Content-Type", "image/jpg").header("Authorization", accessHeader).post(ClientResponse.class, bytes);
+		
+    	return response.getHeaders().getFirst("location");
+    }
     
 	@POST
 	@SuppressWarnings("unchecked")
@@ -121,6 +146,8 @@ public class SampleClient {
 			token = ResponseMap.get("accessToken");
 			accessHeader = "Bearer "+ token; 
 		}
+		
+		
 	}
 
 	
@@ -134,7 +161,8 @@ public class SampleClient {
 		{
 			trigger.put(optionName, options);
 		}
-		trigger.put("expiryDate", cal.getTime());
+		//trigger.put("expiryDate", cal.getTime());
+		trigger.put("typeFriendly", "true");
 		trigger.put("type", type);
 	    trigger.put("name", "trigger");
 		body.put("trigger", trigger);
@@ -171,8 +199,7 @@ public class SampleClient {
 		
 		ObjectMapper mapper = JsonFactory.create();
 		String body = mapper.writeValueAsString(bodyMap);
-
-
+		
 		WebResource webResource = createWebResource(HostURL);
 		ClientResponse response = webResource.header("Content-Type", "application/json").accept("application/json").header("Authorization", accessHeader).post(ClientResponse.class, body);
 	    responseCode = response.getStatus();
@@ -205,8 +232,10 @@ public class SampleClient {
 	private String createLink(String triggerType, String longURL, String type, Map<String, String> opts, String optName) {
 		Map<String, Object> trig = trigger(triggerType, opts, optName);
 		Map<String, Object> payoff = url_payoff(longURL);
-		link((String)trig.get("id"), (String)payoff.get("id"));
 		
+		//System.out.println("Trigger\t"+trig);
+		//System.out.println("Payoff\t"+payoff);
+		link((String)trig.get("id"), (String)payoff.get("id"));
 		List<Map<String, String>> listLink = (List<Map<String,String>>) trig.get("link");
 		for(Map<String, String> map: listLink) 
 		{

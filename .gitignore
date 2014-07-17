@@ -1,6 +1,7 @@
 *.class
 
 myauth.yml
+myauth_aditi.yml
 /target/
 
 qrcode.png
