@@ -1,0 +1,12 @@
+#!/bin/sh
+
+javac -cp "./../dependencies/*" ./*.java 
+java -cp "./../dependencies/*:./" Test > url
+
+open wm.jpg
+open qrcode.png
+while read line
+do
+echo $line
+open $line
+done < url
