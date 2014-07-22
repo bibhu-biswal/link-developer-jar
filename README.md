@@ -42,8 +42,7 @@ fos.close();
 ### Watermarking Images
 
 ```java
-byte[] wm_bytes = lp.watermark_bytes("http://www.hp.com",
-                              "http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg");
+byte[] wm_bytes = lp.watermark_bytes("http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg","http://www.hp.com");
 FileOutputStream fos = new FileOutputStream("watermark.jpg");
 fos.write(wm_bytes);
 fos.close();
