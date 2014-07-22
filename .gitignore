@@ -1,3 +1,5 @@
 *.class
-
-.settings/
+cred.txt
+qrcode.png
+wm.jpg
+url
