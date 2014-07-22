@@ -43,7 +43,7 @@ fos.close();
 
 ```java
 byte[] wm_bytes = lp.watermark_bytes("http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg","http://www.hp.com");
-FileOutputStream fos = new FileOutputStream("watermark.jpg");
+FileOutputStream fos = new FileOutputStream("wm.jpg");
 fos.write(wm_bytes);
 fos.close();
 ```
