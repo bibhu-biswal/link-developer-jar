@@ -20,7 +20,7 @@ public class Sample
 		}
 
 		try {
-		System.out.println(lp.shorten("www.google.com"));
+		System.out.println(lp.shorten("https://www.google.com"));
 
 		byte[] qrbytes = lp.qr_bytes("http://www.amazon.com");
 		FileOutputStream fos = new FileOutputStream("qrcode.png");

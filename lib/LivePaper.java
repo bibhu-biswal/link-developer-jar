@@ -263,7 +263,6 @@ public abstract class LivePaper {
 
 			ObjectMapper mapper = JsonFactory.create();
 			String body = mapper.writeValueAsString(bodyMap);
-
 			WebResource webResource = createWebResource(HostURL);
 			ClientResponse response = webResource.header("Content-Type", "application/json").accept("application/json").header("Authorization", accessHeader).post(ClientResponse.class, body);
 			responseCode = response.getStatus();
