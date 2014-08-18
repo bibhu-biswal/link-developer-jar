@@ -37,14 +37,14 @@ then
 		  exit 1
 	  fi			  
 	  echo "Compilation done!"
-	  java -cp "./livepaper.jar:./" Sample > url
-	  open qrcode.png
-	  while read line
-	  do			
-	  echo $line
-	  open $line
-	  done < url
-	  open wm.jpg
+	  java -cp "./livepaper.jar:./" Sample
+	 # open qrcode.png
+	 # while read line
+	 # do			
+	 # echo $line
+	 # open $line
+	 # done < url
+	 # open wm.jpg
 	 ;;
 	 *)
 		help;	

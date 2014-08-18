@@ -151,9 +151,7 @@ public abstract class LivePaper {
 				return null;
 			}
 			Map<String, String> watermark = new HashMap<String, String>();
-			watermark.put("imageURL",image);
-			watermark.put("resolution", "75");
-			watermark.put("strength","10");		
+			watermark.put("imageURL",image);		
 			String location = createLink("watermark", url, "image", watermark, "watermark");
 			WebResource webResource = createWebResource(location);	
 			ClientResponse response =  webResource.header("Authorization", accessHeader).accept("image/jpeg").get(ClientResponse.class);
@@ -221,7 +219,6 @@ public abstract class LivePaper {
 		{
 			Map<String, Object> body = new HashMap<String, Object>();
 			Map<String, Object> trigger = new HashMap<String, Object>();
-			trigger.put("typeFriendly", "true");
 			trigger.put("type", type);
 			trigger.put("name", "trigger");
 			if(options != null)
