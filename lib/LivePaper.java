@@ -39,12 +39,11 @@ public abstract class LivePaper {
 	 * @param secret The client secret provided in the access credentials
 	 * @return An authorized instance of LivePaper that allows access to Live Paper services 
 	 		   or null if authorization fails. 
-	 
 	 */
 	public static LivePaper auth(String clientID, String secret)
 	{
 		if (clientID == null || secret == null)
-			return null;
+			throw new NullPointerException("Null arguments not accepted.");
 		LivePaper lp = new LivePaperSession();
 		lp.authorize(clientID, secret);
 
@@ -296,9 +295,6 @@ public abstract class LivePaper {
 		private String createLink(String triggerType, String longURL, String type, Map<String, String> opts, String optName) {
 			Map<String, Object> trig = trigger(triggerType, opts, optName);
 			Map<String, Object> payoff = url_payoff(longURL);
-
-			if(trig == null || payoff == null)
-				return null;
 
 			link((String)trig.get("id"), (String)payoff.get("id"));
 			List<Map<String, String>> listLink = (List<Map<String,String>>) trig.get("link");
