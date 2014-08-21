@@ -20,12 +20,12 @@ public class Sample
 		}
 
 		try {
-/*		System.out.println(lp.shorten("https://www.google.com"));
+		System.out.println(lp.shorten("https://www.google.com"));
 
 		byte[] qrbytes = lp.qr_bytes("http://www.amazon.com");
 		FileOutputStream fos = new FileOutputStream("qrcode.png");
 		fos.write(qrbytes);
-		fos.close(); */
+		fos.close(); 
 
 		byte[] wm_bytes = lp.watermark_bytes("http://www.jpl.nasa.gov/spaceimages/images/mediumsize/PIA17011_ip.jpg",
 											 "http://www.hp.com");

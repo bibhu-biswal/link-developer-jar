@@ -4,7 +4,7 @@ Provides a Java interface to the Live Paper service by HP for creating watermark
 
 ## Installation
 
-?? - Will look into this 
+Download the JAR from link.livepaper.com's "Java Sample Code" page. 
 
 ## Register with the Live Paper Service
 
@@ -14,7 +14,7 @@ In order to obtain access credentials register here:  https://link.livepaperdeve
 
 ### Authenticate
 
-Live Paper JAR requires an authentication  with id and secret. Obtain your credentials from the registration link above.
+Live Paper JAR requires authentication with id and secret. Obtain your credentials from the registration link above.
 
 ```java
 LivePaper lp = LivePaper.auth("your client id", "your client secret");
