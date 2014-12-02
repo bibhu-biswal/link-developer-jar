@@ -112,7 +112,7 @@ public abstract class LivePaper {
 			if(url == null)
 				return null;
 
-			String location = createLink("qrcode", url, "image", null, null);
+			String location = createLink("qrcode", url, "image", null, null) + "?width=200";
 
 			WebResource webResource = createWebResource(location);		
 			ClientResponse response =  webResource.accept("image/png").header("Authorization", accessHeader).get(ClientResponse.class);
