@@ -38,7 +38,7 @@ public abstract class LivePaper {
 	 * @param clientID The clientID provided in the access credentials
 	 * @param secret The client secret provided in the access credentials
 	 * @return An authorized instance of LivePaper that allows access to Live Paper services 
-	 		   or null if authorization fails. 
+	 *		   or null if authorization fails. 
 	 */
 	public static LivePaper auth(String clientID, String secret)
 	{
@@ -172,7 +172,7 @@ public abstract class LivePaper {
 		@POST
 		private String img_upload(String imageLoc) throws IOException
 		{
-			String url = "https://storage.livepaperapi.com/objects/files";
+			String url = "https://storage.livepaperapi.com/objects/v1/files";
 
 			if(imageLoc.contains(url))
 				return imageLoc;
@@ -198,7 +198,7 @@ public abstract class LivePaper {
 			toBeSent = "Basic "+toBeSent;
 
 			String body = "grant_type=client_credentials&scope=all";
-			WebResource webResource = createWebResource(LP_API_HOST+"/auth/token");
+			WebResource webResource = createWebResource(LP_API_HOST+"/auth/v1/token");
 
 			ClientResponse response = webResource.header("Content-Type", "application/x-www-form-urlencoded").accept("application/json").header("Authorization", toBeSent).post(ClientResponse.class, body);
 			responseCode = response.getStatus();

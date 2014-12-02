@@ -17,6 +17,6 @@ jar -cf livepaper.jar *
 mv livepaper.jar ..
 cd ..
 echo "Done creating JAR"
-echo "Running livepapertest script"
-./livepapertest test_noproxy
+echo "Running test_jar.sh script"
+./test_jar.sh test_noproxy
 
