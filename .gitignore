@@ -1,7 +1,8 @@
 *.class
 cred.txt
 qrcode.png
+qr_code.png
 wm.jpg
+watermark.jpg
 url
-livepaper_orig.jar
 src
