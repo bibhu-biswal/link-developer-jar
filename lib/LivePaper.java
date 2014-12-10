@@ -10,6 +10,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.UriBuilder;
 import javax.net.ssl.*;
+import javax.xml.bind.DatatypeConverter;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import org.boon.json.ObjectMapper;
@@ -18,13 +19,12 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Provides a Java interface to the Live Paper service by HP for
  * creating watermarked images, QR codes, and mobile-friendly 
  * shortened URLs. 
- * @version 0.0.1
+ * @version 0.0.2
  */
 public abstract class LivePaper {
 
@@ -40,7 +40,7 @@ public abstract class LivePaper {
 	 * @return An authorized instance of LivePaper that allows access to Live Paper services 
 	 *		   or null if authorization fails. 
 	 */
-	public static LivePaper auth(String clientID, String secret)
+	public static LivePaper auth(String clientID, String secret) throws java.io.UnsupportedEncodingException
 	{
 		if (clientID == null || secret == null)
 			throw new NullPointerException("Null arguments not accepted.");
@@ -78,7 +78,7 @@ public abstract class LivePaper {
 	 */
 	public abstract byte[] watermark_bytes(String imageLoc, String url);
 
-	protected abstract void authorize(String clientID, String secret);
+	protected abstract void authorize(String clientID, String secret) throws java.io.UnsupportedEncodingException;
 	
 	static class LivePaperSession extends LivePaper
 	{
@@ -191,10 +191,9 @@ public abstract class LivePaper {
 
 		@POST
 		@SuppressWarnings("unchecked")
-		protected void authorize(String clientID, String secret) 
+		protected void authorize(String clientID, String secret) throws java.io.UnsupportedEncodingException
 		{
-			//cannot use encodeBase64String() for completely unknown reason, need to convert to byte[] to encode 
-			String toBeSent = new String(Base64.encodeBase64((clientID+":"+secret).getBytes()));
+			String toBeSent = DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes("UTF-8"));
 			toBeSent = "Basic "+toBeSent;
 
 			String body = "grant_type=client_credentials&scope=all";
