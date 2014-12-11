@@ -1,10 +1,11 @@
 package com.hp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
 import org.boon.json.JsonFactory;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -118,7 +119,7 @@ public abstract class LivePaper {
 			ClientResponse response =  webResource.accept("image/png").header("Authorization", accessHeader).get(ClientResponse.class);
 			byte[] bytes;
 			try {
-				bytes = IOUtils.toByteArray(response.getEntityInputStream());
+				bytes = inputStreamToByteArray(response.getEntityInputStream());
 			}
 			catch(IOException e)
 			{
@@ -157,7 +158,7 @@ public abstract class LivePaper {
 			ClientResponse response =  webResource.header("Authorization", accessHeader).accept("image/jpeg").get(ClientResponse.class);
 			byte[] bytes;
 			try {
-				bytes = IOUtils.toByteArray(response.getEntityInputStream());
+				bytes = inputStreamToByteArray(response.getEntityInputStream());
 			}
 			catch(IOException e)
 			{
@@ -180,7 +181,8 @@ public abstract class LivePaper {
 			//get the image bytes from the image hosting website, and upload the image on livepaper storage
 			WebResource source = createWebResource(imageLoc);		
 			ClientResponse imgResponse =  source.accept("image/jpg").get(ClientResponse.class);
-			byte[] bytes = IOUtils.toByteArray(imgResponse.getEntityInputStream());		
+			byte[] bytes = inputStreamToByteArray(imgResponse.getEntityInputStream());
+
 
 			WebResource webResource = createWebResource(url);		
 			ClientResponse response = webResource.header("Content-Type", "image/jpg").header("Authorization", accessHeader).post(ClientResponse.class, bytes);
@@ -211,6 +213,17 @@ public abstract class LivePaper {
 			}
 
 
+		}
+
+		private byte[] inputStreamToByteArray(InputStream is) throws IOException {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			int next = is.read();
+			while (next > -1) {
+			    bos.write(next);
+			    next = is.read();
+			}
+			bos.flush();
+			return bos.toByteArray();
 		}
 
 
