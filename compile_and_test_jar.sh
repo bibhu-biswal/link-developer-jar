@@ -46,7 +46,8 @@ echo "${CYAN}Compiling LivePaper.java...${RESET}"
 javac com/hp/LivePaper.java || exit 1
 
 echo "${CYAN}Creating LivePaper.jar...${RESET}"
-jar -cf livepaper.jar $(find com | grep class$) || exit 1
+ver=$(grep @version com/hp/LivePaper.java | sed -e 's:.* ::')
+jar -cf livepaper-$ver.jar $(find com | grep class$) || exit 1
 
 echo "${CYAN}Testing the jar...${RESET}"
 ./test_jar.sh
