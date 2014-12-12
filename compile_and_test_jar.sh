@@ -46,7 +46,7 @@ echo "${CYAN}Compiling LivePaper.java...${RESET}"
 javac com/hp/LivePaper.java || exit 1
 
 echo "${CYAN}Creating LivePaper.jar...${RESET}"
-jar -cf livepaper.jar com || exit 1
+jar -cf livepaper.jar $(find com | grep class$) || exit 1
 
 echo "${CYAN}Testing the jar...${RESET}"
 ./test_jar.sh
