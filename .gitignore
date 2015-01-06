@@ -1,8 +1,14 @@
 *.class
 cred.txt
+mykeys.txt
 qrcode.png
+image_qr_code.png
 qr_code.png
 wm.jpg
 watermark.jpg
+image_watermark.jpg
 url
-src
+tmp_jars/
+META-INF/
+target/classes/
+target/*/*

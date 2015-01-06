@@ -4,50 +4,14 @@ RED="\033[1;31m"
 CYAN="\033[1;36m"
 RESET="\033[0m"
 
-usejar() {
-  bin=""
-  jar="${1%.jar}"
-  url="$2"
-  case $jar in
-    *-bin.tar.gz)
-      bin=$jar
-      jar=${jar%-bin.tar.gz}
-      ;;
-  esac
-  mkdir -p jars
-  if [ -f jars/$jar.jar -a ! -s jars/$jar.jar ]; then
-    rm jars/$jar.jar # previous download problems can leave an empty file... remove it
-  fi
-  if [ ! -f jars/$jar.jar ]; then
-    echo "${CYAN}downloading $jar.jar...${RESET}"
-    if [ "$bin" != "" ]; then
-     echo + curl -s $url/${bin} \| gunzip \| tar -xvf - --include '*'$jar.jar
-             curl -s $url/${bin}  | gunzip  | tar -xvf - --include '*'$jar.jar
-      mv $jar/$jar.jar jars/ && rmdir $jar
-    else
-     echo + curl -s $url/$jar.jar \> jars/$jar.jar
-             curl -s $url/$jar.jar  > jars/$jar.jar
-    fi
-  fi
-  tar -tvf jars/$jar.jar | grep MANIFEST > /dev/null
-  if [ $? = 1 ];then
-  	echo "${RED}ERROR: unable to obtain jar \"$jar\"!${RESET}"
-  	exit 1
-  fi
-  CLASSPATH="$CLASSPATH:jars/${jar}.jar"
-}
+echo "${CYAN}Building JAR with Maven...${RESET}"
+mvn package
 
-export CLASSPATH="$HOME/src/lpp_client_java/livepaper.jar"
-usejar "boon-0.24"             "http://central.maven.org/maven2/io/fastjson/boon/0.24"
-usejar "jersey-client-1.18.3"  "http://central.maven.org/maven2/com/sun/jersey/jersey-client/1.18.3"
-usejar "jersey-core-1.18.3"    "http://central.maven.org/maven2/com/sun/jersey/jersey-core/1.18.3"
+echo "${CYAN}Running Basic Test [com.hp.LivePaperExample.main()]...${RESET}"
+cp="$HOME/.m2/repository/com/sun/jersey/jersey-client/1.18.3/jersey-client-1.18.3.jar"
+cp="$cp:$HOME/.m2/repository/com/sun/jersey/jersey-core/1.18.3/jersey-core-1.18.3.jar"
+cp="$cp:$HOME/.m2/repository/io/fastjson/boon/0.24/boon-0.24.jar"
+java -cp $cp:./target/livepaper-0.0.5.jar com.hp.LivePaperExample
 
-echo "${CYAN}Compiling LivePaper.java...${RESET}"
-javac com/hp/LivePaper.java || exit 1
-
-echo "${CYAN}Creating LivePaper.jar...${RESET}"
-ver=$(grep @version com/hp/LivePaper.java | sed -e 's:.* ::')
-jar -cf livepaper-$ver.jar $(find com | grep class$) || exit 1
-
-echo "${CYAN}Testing the jar...${RESET}"
+echo "${CYAN}Running Additional Test...${RESET}"
 ./test_jar.sh
