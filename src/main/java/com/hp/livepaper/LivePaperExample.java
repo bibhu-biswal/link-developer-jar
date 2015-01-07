@@ -69,6 +69,7 @@ public class LivePaperExample {
       System.out.println("done!");
     } catch (Exception e) {
       System.err.println(e);
+      System.exit(1);
     }
   }
 }
