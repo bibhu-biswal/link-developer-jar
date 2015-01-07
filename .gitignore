@@ -11,4 +11,5 @@ url
 tmp_jars/
 META-INF/
 target/classes/
-target/*/*
+target/maven-archiver/
+target/maven-status/

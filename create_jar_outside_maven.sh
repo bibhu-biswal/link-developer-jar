@@ -43,8 +43,8 @@ usejar "jersey-client-1.18.3"  "http://central.maven.org/maven2/com/sun/jersey/j
 usejar "jersey-core-1.18.3"    "http://central.maven.org/maven2/com/sun/jersey/jersey-core/1.18.3"
 
 echo "${CYAN}Compiling LivePaper.java...${RESET}"
-javac src/main/java/com/hp/LivePaper.java || exit 1
+javac src/main/java/com/hp/livepaper/LivePaper.java || exit 1
 
 echo "${CYAN}Creating LivePaper.jar...${RESET}"
-ver=$(grep @version src/main/java/com/hp/LivePaper.java | sed -e 's:.* ::')
-jar -cf livepaper-$ver.jar $(find src | grep LivePaper.class$) || exit 1
+ver=$(grep '<version>' pom.xml | head -1 | sed -e 's:[^0-9]*\([0-9]\):\1:' -e 's:<.*::')
+jar -cf target/livepaper-$ver.jar $(find src | grep LivePaper.class$) || exit 1
