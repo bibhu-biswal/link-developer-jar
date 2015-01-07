@@ -3,35 +3,23 @@ package com.hp.livepaper;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.boon.json.JsonFactory;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.core.UriBuilder;
-import javax.net.ssl.*;
 import javax.xml.bind.DatatypeConverter;
-
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
-
 import org.boon.json.ObjectMapper;
-
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 /**
  * Provides a Java interface to the Live Paper service by HP for
  * creating watermarked images, QR codes, and mobile-friendly 
  * shortened URLs. 
  */
+@SuppressWarnings("restriction")
 public abstract class LivePaper {
     protected final String LP_API_HOST = "https://www.livepaperapi.com";
     protected String token = null;  
@@ -103,7 +91,7 @@ public abstract class LivePaper {
             if(url == null)
                 return null;
             String location = createLink("qrcode", url, "image", null, null) + "?width=200";
-            WebResource webResource = createWebResource(location);      
+            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);      
             ClientResponse response =  webResource.
                 accept("image/png").
                 header("Authorization", accessHeader).
@@ -141,7 +129,7 @@ public abstract class LivePaper {
             Map<String, String> watermark = new HashMap<String, String>();
             watermark.put("imageURL",image);        
             String location = createLink("watermark", url, "image", watermark, "watermark");
-            WebResource webResource = createWebResource(location);  
+            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);  
             ClientResponse response =  webResource.
                 header("Authorization", accessHeader).
                 accept("image/jpeg").
@@ -164,10 +152,10 @@ public abstract class LivePaper {
             if(imageLoc.contains(url))
                 return imageLoc;
             //get the image bytes from the image hosting website, and upload the image on livepaper storage
-            WebResource source = createWebResource(imageLoc);       
+            WebResource source = com.hp.livepaper.LivePaperSession.createWebResource(imageLoc);       
             ClientResponse imgResponse =  source.accept("image/jpg").get(ClientResponse.class);
             byte[] bytes = inputStreamToByteArray(imgResponse.getEntityInputStream());
-            WebResource webResource = createWebResource(url);       
+            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(url);       
             ClientResponse response = webResource.
                 header("Content-Type", "image/jpg").
                 header("Authorization", accessHeader).
@@ -180,7 +168,7 @@ public abstract class LivePaper {
             String toBeSent = DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes("UTF-8"));
             toBeSent = "Basic "+toBeSent;
             String body = "grant_type=client_credentials&scope=all";
-            WebResource webResource = createWebResource(LP_API_HOST+"/auth/v1/token");
+            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(LP_API_HOST+"/auth/v1/token");
             ClientResponse response = webResource.
                 header("Content-Type", "application/x-www-form-urlencoded").
                 accept("application/json").
@@ -238,7 +226,7 @@ public abstract class LivePaper {
             String HostURL = LP_API_HOST + "/api/v1/" + resource+"s";
             ObjectMapper mapper = JsonFactory.create();
             String body = mapper.writeValueAsString(bodyMap);
-            WebResource webResource = createWebResource(HostURL);
+            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(HostURL);
             ClientResponse response = webResource.
                 header("Content-Type", "application/json").
                 accept("application/json").
@@ -254,13 +242,6 @@ public abstract class LivePaper {
             }
             return null;
         }   
-        private WebResource createWebResource(String location)  {
-            LivePaper.disableCertificateValidation();
-            ClientConfig config = new DefaultClientConfig();
-            Client client = Client.create(config);
-            WebResource webResource = client.resource(UriBuilder.fromUri(location).build());
-            return webResource;
-        } 
         @SuppressWarnings("unchecked")
         private String createLink(String triggerType, String longURL, String type, Map<String, String> opts, String optName) {
             Map<String, Object> trig = trigger(triggerType, opts, optName);
@@ -273,27 +254,5 @@ public abstract class LivePaper {
             }
             return null;
         }
-    }
-    protected static void disableCertificateValidation() {
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[] { 
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() { 
-                        return new X509Certificate[0]; 
-                    }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                }};
-        // Ignore differences between given hostname and certificate hostname
-        HostnameVerifier hv = new HostnameVerifier() {
-            public boolean verify(String hostname, SSLSession session) { return true; }
-        };
-        // Install the all-trusting trust manager
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(hv);
-        } catch (Exception e) {}
     }
 }

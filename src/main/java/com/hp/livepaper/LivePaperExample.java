@@ -19,9 +19,21 @@ public class LivePaperExample {
       Scanner scan = new Scanner(new File(key_file));
       String id = scan.nextLine();
       String secret = scan.nextLine();
+      scan.close();
+      if (true) {
+        System.out.println("Authenticating with LivePaperSession...");
+        LivePaperSession.setLppBasicAuth(id, secret);
+        System.out.println("  ShortTrigger.create()...");
+        ShortTrigger tr = ShortTrigger.create("My ShortTrigger");
+        System.out.println("    Trigger Name: \""+tr.getName()+"\"");
+        System.out.println("    Trigger Id: \""+tr.getId()+"\"");
+        System.out.println("    Short URL: \""+tr.getShortUrl()+"\"");
+      //System.exit(0);
+      }
+      System.out.println("Authenticating with LivePaper...");
       LivePaper lp = LivePaper.auth(id, secret);
       if (lp == null) {
-        System.err.println("Authentication failure");
+        System.err.println("  Authentication failure!");
         System.exit(1);
       }
       if (true) {
