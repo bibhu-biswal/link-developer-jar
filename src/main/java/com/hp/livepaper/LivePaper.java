@@ -61,8 +61,9 @@ public abstract class LivePaper {
      * @param imageLoc The the URL where the image is hosted
      * @param url The URL that needs to be encoded in the image 
      * @return The byte representation of the watermarked image or null if passed string is null, or if access is unauthorized, or in case of server error.    
+     * @throws LivePaperException 
      */
-    public abstract byte[] watermark_bytes(String imageLoc, String url);
+    public abstract byte[] watermark_bytes(String imageLoc, String url) throws LivePaperException;
     protected abstract void authorize(String clientID, String secret) throws java.io.UnsupportedEncodingException;  
     static class LivePaperSession extends LivePaper {
         /**
@@ -111,9 +112,10 @@ public abstract class LivePaper {
          * @param imageLoc The the URL where the image is hosted
          * @param url The URL that needs to be encoded in the image 
          * @return The byte representation of the watermarked image or null if passed string is null, or if access is unauthorized, or in case of server error.    
+         * @throws LivePaperException 
          */
         @GET
-        public byte[] watermark_bytes(String imageLoc, String url) {
+        public byte[] watermark_bytes(String imageLoc, String url) throws LivePaperException {
             if (token == null)
                 return null;
             if(imageLoc == null || url == null)
@@ -147,13 +149,18 @@ public abstract class LivePaper {
         //////////////////////////////////// Private helper methods //////////////////////////////////////
         /* Upload the image to livepaper storage */
         @POST
-        private String img_upload(String imageLoc) throws IOException   {
+        private String img_upload(String imageLoc) throws IOException, LivePaperException   {
             String url = "https://storage.livepaperapi.com/objects/v1/files";
             if(imageLoc.contains(url))
                 return imageLoc;
             //get the image bytes from the image hosting website, and upload the image on livepaper storage
-            WebResource source = com.hp.livepaper.LivePaperSession.createWebResource(imageLoc);       
-            ClientResponse imgResponse =  source.accept("image/jpg").get(ClientResponse.class);
+            WebResource source = com.hp.livepaper.LivePaperSession.createWebResource(imageLoc);
+            ClientResponse imgResponse = null;
+            try {
+              imgResponse =  source.accept("image/jpg").get(ClientResponse.class);
+            } catch ( com.sun.jersey.api.client.ClientHandlerException e ) {
+              throw new LivePaperException("Unable to obtain image from \""+imageLoc+"\"!");
+            }
             byte[] bytes = inputStreamToByteArray(imgResponse.getEntityInputStream());
             WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(url);       
             ClientResponse response = webResource.
@@ -223,24 +230,39 @@ public abstract class LivePaper {
         @POST
         @SuppressWarnings("unchecked")
         private Map<String, Object> create_resource(String resource, Map<String, Object> bodyMap) {
-            String HostURL = LP_API_HOST + "/api/v1/" + resource+"s";
-            ObjectMapper mapper = JsonFactory.create();
-            String body = mapper.writeValueAsString(bodyMap);
-            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(HostURL);
-            ClientResponse response = webResource.
-                header("Content-Type", "application/json").
-                accept("application/json").
-                header("Authorization", accessHeader).
-                post(ClientResponse.class, body);
-            responseCode = response.getStatus();
-            if(responseCode == 201) {   
-                Map<String, Object> responseMap = mapper.readValue(response.getEntity(String.class), Map.class);
-                return (Map<String, Object>)responseMap.get(resource);
-            } else {
+          int maxTries = com.hp.livepaper.LivePaperSession.getNetworkErrorRetryCount();
+          int tries = 0;
+          while ( true ) {
+            try {
+              String HostURL = LP_API_HOST + "/api/v1/" + resource+"s";
+              ObjectMapper mapper = JsonFactory.create();
+              String body = mapper.writeValueAsString(bodyMap);
+              WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(HostURL);
+              ClientResponse response = webResource.
+                  header("Content-Type", "application/json").
+                  accept("application/json").
+                  header("Authorization", accessHeader).
+                  post(ClientResponse.class, body);
+              responseCode = response.getStatus();
+              if(responseCode == 201) {   
+                  Map<String, Object> responseMap = mapper.readValue(response.getEntity(String.class), Map.class);
+                  return (Map<String, Object>)responseMap.get(resource);
+              } else {
                 System.out.println(responseCode);
                 System.out.println(response.getEntity(String.class));
+              }
+              return null;
+            }          
+            catch ( com.sun.jersey.api.client.ClientHandlerException e ) {
+              tries++;
+              if ( tries > maxTries )
+                throw e;
+              System.err.println("Warning: Network error! retrying ("+tries+" of "+maxTries+")...");
+              System.err.println("  (error was \""+e.getMessage()+"\")");
+              try { Thread.sleep(com.hp.livepaper.LivePaperSession.getRetrySleepPeriod()); } catch (InterruptedException e1) { throw e; }
+              continue;
             }
-            return null;
+          }
         }   
         @SuppressWarnings("unchecked")
         private String createLink(String triggerType, String longURL, String type, Map<String, String> opts, String optName) {
@@ -256,3 +278,4 @@ public abstract class LivePaper {
         }
     }
 }
+//Java.net.SocketException: Network is unreachable [LivePaper$LivePaperSession.create_resource()]
