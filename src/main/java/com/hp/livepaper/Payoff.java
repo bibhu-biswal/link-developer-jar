@@ -37,9 +37,7 @@ public class Payoff extends BaseObject {
     setUrl(url);
   }
   public static Payoff create(String name, Type type, String url) throws Exception {
-    Payoff tr = new Payoff(name, type, url);
-    tr.save();
-    return tr;
+    return (new Payoff(name, type, url)).save();
   }
   // Overrides
   @Override
@@ -59,12 +57,17 @@ public class Payoff extends BaseObject {
   }
   @Override
   protected void validate_attributes() {
+    StringBuilder sb = new StringBuilder(); 
     if (getName() == null)
-      throw new IllegalArgumentException("Required attributes needed: name");
+      sb.append("name, ");
     if (getType() == null)
-      throw new IllegalArgumentException("Required attributes needed: type");
+      sb.append("Type, ");
     if (getUrl() == null)
-      throw new IllegalArgumentException("Required attributes needed: url");
+      sb.append("Url, ");
+    if ( sb.length() > 0 ) {
+      sb.setLength(sb.length() - 2);
+      throw new IllegalArgumentException("Invalid state for this operation! (missing attributes: "+sb.toString()+")");
+    }
   }
   @Override
   protected Map<String, Object> create_body() throws Exception {

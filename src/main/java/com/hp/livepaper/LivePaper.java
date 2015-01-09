@@ -9,7 +9,6 @@ import java.util.Map;
 import org.boon.json.JsonFactory;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.xml.bind.DatatypeConverter;
 import org.boon.json.ObjectMapper;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -19,12 +18,8 @@ import com.sun.jersey.api.client.WebResource;
  * creating watermarked images, QR codes, and mobile-friendly 
  * shortened URLs. 
  */
-@SuppressWarnings("restriction")
 public abstract class LivePaper {
     protected final String LP_API_HOST = "https://www.livepaperapi.com";
-    protected String token = null;  
-    protected String accessHeader = null;
-    protected int responseCode;
     /**
      * Authorize the client. 
      * @param clientID The clientID provided in the access credentials
@@ -37,11 +32,6 @@ public abstract class LivePaper {
             throw new NullPointerException("Null arguments not accepted.");
         LivePaper lp = new LivePaperSession();
         lp.authorize(clientID, secret);
-        if(lp.responseCode != 200)
-        {
-            lp.token = null;
-            return null;
-        }
         return lp;
     }
     /**
@@ -73,7 +63,7 @@ public abstract class LivePaper {
          */
         public String shorten(String longURL)
         {
-            if (token == null)
+            if (com.hp.livepaper.LivePaperSession.getLppAccessToken() == null)
                 return null;
             if(longURL == null)
                 return null;    
@@ -87,7 +77,7 @@ public abstract class LivePaper {
          */
         @GET
         public byte[] qr_bytes(String url) {
-            if (token == null)
+            if (com.hp.livepaper.LivePaperSession.getLppAccessToken() == null)
                 return null;
             if(url == null)
                 return null;
@@ -95,7 +85,7 @@ public abstract class LivePaper {
             WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);      
             ClientResponse response =  webResource.
                 accept("image/png").
-                header("Authorization", accessHeader).
+                header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
                 get(ClientResponse.class);
             byte[] bytes;
             try {
@@ -116,7 +106,7 @@ public abstract class LivePaper {
          */
         @GET
         public byte[] watermark_bytes(String imageLoc, String url) throws LivePaperException {
-            if (token == null)
+            if (com.hp.livepaper.LivePaperSession.getLppAccessToken() == null)
                 return null;
             if(imageLoc == null || url == null)
                 return null;
@@ -133,7 +123,7 @@ public abstract class LivePaper {
             String location = createLink("watermark", url, "image", watermark, "watermark");
             WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);  
             ClientResponse response =  webResource.
-                header("Authorization", accessHeader).
+                header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
                 accept("image/jpeg").
                 get(ClientResponse.class);
             byte[] bytes;
@@ -159,35 +149,19 @@ public abstract class LivePaper {
             try {
               imgResponse =  source.accept("image/jpg").get(ClientResponse.class);
             } catch ( com.sun.jersey.api.client.ClientHandlerException e ) {
-              throw new LivePaperException("Unable to obtain image from \""+imageLoc+"\"!");
+              throw new LivePaperException("Unable to obtain image from \""+imageLoc+"\"!", e);
             }
             byte[] bytes = inputStreamToByteArray(imgResponse.getEntityInputStream());
             WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(url);       
             ClientResponse response = webResource.
                 header("Content-Type", "image/jpg").
-                header("Authorization", accessHeader).
+                header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
                 post(ClientResponse.class, bytes);
             return response.getHeaders().getFirst("location");
         }
         @POST
-        @SuppressWarnings("unchecked")
         protected void authorize(String clientID, String secret) throws java.io.UnsupportedEncodingException {
-            String toBeSent = DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes("UTF-8"));
-            toBeSent = "Basic "+toBeSent;
-            String body = "grant_type=client_credentials&scope=all";
-            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(LP_API_HOST+"/auth/v1/token");
-            ClientResponse response = webResource.
-                header("Content-Type", "application/x-www-form-urlencoded").
-                accept("application/json").
-                header("Authorization", toBeSent).
-                post(ClientResponse.class, body);
-            responseCode = response.getStatus();
-            if(responseCode== 200) {    
-                ObjectMapper mapper = JsonFactory.create();
-                Map<String, String> ResponseMap = mapper.readValue(response.getEntity(String.class), Map.class);
-                token = ResponseMap.get("accessToken");
-                accessHeader = "Bearer "+ token; 
-            }
+          com.hp.livepaper.LivePaperSession.setLppBasicAuth(clientID, secret);
         }
         private byte[] inputStreamToByteArray(InputStream is) throws IOException {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -241,9 +215,9 @@ public abstract class LivePaper {
               ClientResponse response = webResource.
                   header("Content-Type", "application/json").
                   accept("application/json").
-                  header("Authorization", accessHeader).
+                  header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
                   post(ClientResponse.class, body);
-              responseCode = response.getStatus();
+              int responseCode = response.getStatus();
               if(responseCode == 201) {   
                   Map<String, Object> responseMap = mapper.readValue(response.getEntity(String.class), Map.class);
                   return (Map<String, Object>)responseMap.get(resource);

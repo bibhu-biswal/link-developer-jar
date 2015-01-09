@@ -45,7 +45,12 @@ public class LivePaperExample {
         System.out.println("    Links:");
         for (String item : tr.getLinks().keySet())
           System.out.println("      " + item + ": " + tr.getLinks().get(item));
-        // System.exit(0);
+        System.out.println(" Link.create()...");
+        Link ln = Link.create("My Link", tr, po);
+        System.out.println("    Link Name: \"" + ln.getName() + "\"");
+        System.out.println("    Trigger Id: \"" + ln.getTrigger().getId() + "\"");
+        System.out.println("    Payoff Id: \"" + ln.getPayoff().getId() + "\"");
+        //System.exit(0);
       }
       System.out.println("Authenticating with LivePaper...");
       LivePaper lp = LivePaper.auth(id, secret);

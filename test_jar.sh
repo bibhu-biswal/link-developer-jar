@@ -11,7 +11,7 @@ if [ "$HTTP_PROXY" ];then
   echo "${CYAN}  (note that image uploads for watermarking seem to fail behind a proxy)${RESET}"
 fi
 
-ver=0.0.7
+ver=$(grep '<version>' pom.xml | head -1 | sed -e 's:[^0-9]*\([0-9]\):\1:' -e 's:<.*::')
 jar=$PWD/target/livepaper-$ver.jar
 echo "${CYAN}Running Basic Test [com.hp.livepaper.LivePaperExample.main()]...${RESET}"
 cp="$HOME/.m2/repository/com/sun/jersey/jersey-client/1.18.3/jersey-client-1.18.3.jar"

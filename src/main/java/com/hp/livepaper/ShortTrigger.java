@@ -1,26 +1,19 @@
 package com.hp.livepaper;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.boon.json.JsonFactory;
 
 public class ShortTrigger extends Trigger {
   private static String DEFAULT_SUBSCRIPTION = "month";
-  private String        short_url            = null;
-  private void setShortUrl(String short_url) {
-    this.short_url = short_url;
-  }
   public String getShortUrl() {
-    return short_url;
+    return getLinks().get("shortURL");
   }
   public ShortTrigger(String name) {
     this.setName(name);
   }
   public static ShortTrigger create(String name) throws Exception {
-    ShortTrigger tr = new ShortTrigger(name);
-    tr.save();
-    return tr;
+    return (new ShortTrigger(name)).save();
   }
   public ShortTrigger save() throws Exception {
     return (ShortTrigger) super.save();
@@ -35,7 +28,7 @@ public class ShortTrigger extends Trigger {
   @Override
   protected void validate_attributes() {
     if (getName() == null)
-      throw new IllegalArgumentException("Required attributes needed: name");
+      throw new IllegalArgumentException("Invalid state for this operation! (missing attribute: name)");
   }
   @Override
   protected Map<String, Object> create_body() throws Exception {
@@ -57,12 +50,5 @@ public class ShortTrigger extends Trigger {
   @Override
   protected void assign_attributes(Map<String, Object> data) {
     super.assign_attributes(data);
-    setShortUrl(this.getLinks().get("shortURL"));
-    @SuppressWarnings("unchecked")
-    List<Map<String, String>> listLink = (List<Map<String, String>>) data.get("link");
-    for (Map<String, String> map : listLink) {
-      if (map.get("rel").equals("shortURL"))
-        setShortUrl(map.get("href"));
-    }
   }
 }
