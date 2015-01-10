@@ -25,31 +25,81 @@ public class LivePaperExample {
       if (true) {
         System.out.println("Authenticating with LivePaperSession...");
         LivePaperSession.setLppBasicAuth(id, secret);
+
+        System.out.println("Creating QR Code...");
+        System.out.println("  QrTrigger.create()...");
+        QrTrigger qr0 = QrTrigger.create("My QrTrigger");
+        System.out.println("    Trigger Name: \"" + qr0.getName() + "\"");
+        System.out.println("    Trigger Id: \"" + qr0.getId() + "\"");
+        System.out.println("    Short URL: \"" + qr0.getQrCodeUrl() + "\"");
+        System.out.println("    dateCreated: \"" + qr0.getDateCreated() + "\"");
+        System.out.println("    dateModified: \"" + qr0.getDateModified() + "\"");
+        System.out.println("    Links:");
+        for (String item : qr0.getLinks().keySet())
+          System.out.println("      " + item + ": " + qr0.getLinks().get(item));
+        System.out.println("  Payoff.create()...");
+        Payoff po0 = Payoff.create("My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
+        System.out.println("    Payoff Name: \"" + po0.getName() + "\"");
+        System.out.println("    Payoff Id: \"" + po0.getId() + "\"");
+        System.out.println("    Payoff URL: \"" + po0.getId() + "\"");
+        System.out.println("    dateCreated: \"" + po0.getDateCreated() + "\"");
+        System.out.println("    dateModified: \"" + po0.getDateModified() + "\"");
+        System.out.println("    Links:");
+        for (String item : po0.getLinks().keySet())
+          System.out.println("      " + item + ": " + po0.getLinks().get(item));
+        System.out.println("  Link.create()...");
+        Link ln0 = Link.create("My Link", qr0, po0);
+        System.out.println("    [Link Name: \"" + ln0.getName() + "\"]");
+        System.out.println("    [Trigger Id: \"" + ln0.getTrigger().getId() + "\"]");
+        System.out.println("    Payoff Id: \"" + ln0.getPayoff().getId() + "\"");
+        System.out.println("    dateCreated: \"" + ln0.getDateCreated() + "\"");
+        System.out.println("    dateModified: \"" + ln0.getDateModified() + "\"");
+        System.out.println("    Links:");
+        for (String item : ln0.getLinks().keySet())
+          System.out.println("      " + item + ": " + ln0.getLinks().get(item));
+        System.out.println("  Downloading QR code...");
+        byte[] qrbytes = qr0.downloadQrCode();
+        String img_out = "image_qr_code.png";
+        FileOutputStream fos = new FileOutputStream(img_out);
+        fos.write(qrbytes);
+        fos.close();
+        System.out.println("    into local file \"" + img_out + '"');
+        System.out.println("  Done creating QR Code.");
+
+        System.out.println("Creating Short URL...");
         System.out.println("  ShortTrigger.create()...");
-        ShortTrigger tr = ShortTrigger.create("My ShortTrigger");
-        System.out.println("    Trigger Name: \"" + tr.getName() + "\"");
-        System.out.println("    Trigger Id: \"" + tr.getId() + "\"");
-        System.out.println("    Short URL: \"" + tr.getShortUrl() + "\"");
-        System.out.println("    Short dateCreated: \"" + tr.getDateCreated() + "\"");
-        System.out.println("    Short dateModified: \"" + tr.getDateModified() + "\"");
+        ShortTrigger tr1 = ShortTrigger.create("My ShortTrigger");
+        System.out.println("    Trigger Name: \"" + tr1.getName() + "\"");
+        System.out.println("    Trigger Id: \"" + tr1.getId() + "\"");
+        System.out.println("    Short URL: \"" + tr1.getShortUrl() + "\"");
+        System.out.println("    Short dateCreated: \"" + tr1.getDateCreated() + "\"");
+        System.out.println("    Short dateModified: \"" + tr1.getDateModified() + "\"");
         System.out.println("    Links:");
-        for (String item : tr.getLinks().keySet())
-          System.out.println("      " + item + ": " + tr.getLinks().get(item));
-        System.out.println(" Payoff.create()...");
-        Payoff po = Payoff.create("My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
-        System.out.println("    Payoff Name: \"" + po.getName() + "\"");
-        System.out.println("    Payoff Id: \"" + po.getId() + "\"");
-        System.out.println("    Payoff URL: \"" + po.getId() + "\"");
-        System.out.println("    Short dateCreated: \"" + po.getDateCreated() + "\"");
-        System.out.println("    Short dateModified: \"" + po.getDateModified() + "\"");
+        for (String item : tr1.getLinks().keySet())
+          System.out.println("      " + item + ": " + tr1.getLinks().get(item));
+        System.out.println("  Payoff.create()...");
+        Payoff po1 = Payoff.create("My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
+        System.out.println("    Payoff Name: \"" + po1.getName() + "\"");
+        System.out.println("    Payoff Id: \"" + po1.getId() + "\"");
+        System.out.println("    Payoff URL: \"" + po1.getId() + "\"");
+        System.out.println("    Short dateCreated: \"" + po1.getDateCreated() + "\"");
+        System.out.println("    Short dateModified: \"" + po1.getDateModified() + "\"");
         System.out.println("    Links:");
-        for (String item : tr.getLinks().keySet())
-          System.out.println("      " + item + ": " + tr.getLinks().get(item));
-        System.out.println(" Link.create()...");
-        Link ln = Link.create("My Link", tr, po);
-        System.out.println("    Link Name: \"" + ln.getName() + "\"");
-        System.out.println("    Trigger Id: \"" + ln.getTrigger().getId() + "\"");
-        System.out.println("    Payoff Id: \"" + ln.getPayoff().getId() + "\"");
+        for (String item : po1.getLinks().keySet())
+          System.out.println("      " + item + ": " + po1.getLinks().get(item));
+        System.out.println("  Link.create()...");
+        Link ln1 = Link.create("My Link", tr1, po1);
+        System.out.println("    Link Name: \"" + ln1.getName() + "\"");
+        System.out.println("    [Trigger Id: \"" + ln1.getTrigger().getId() + "\"]");
+        System.out.println("    [Payoff Id: \"" + ln1.getPayoff().getId() + "\"]");
+        System.out.println("    dateCreated: \"" + ln1.getDateCreated() + "\"");
+        System.out.println("    dateModified: \"" + ln1.getDateModified() + "\"");
+        System.out.println("    Links:");
+        for (String item : ln1.getLinks().keySet())
+          System.out.println("      " + item + ": " + ln1.getLinks().get(item));
+        System.out.println("  Done creating Short URL.");
+
+        System.out.println();
         //System.exit(0);
       }
       System.out.println("Authenticating with LivePaper...");
@@ -66,7 +116,7 @@ public class LivePaperExample {
       }
       if (true) {
         String url = "http://www.hp.com";
-        String img_out = "image_qr_code.png";
+        String img_out = "image_qr_code2.png";
         System.out.println("Creating QR code for \"" + url + '"');
         byte[] qrbytes = lp.qr_bytes(url);
         FileOutputStream fos = new FileOutputStream(img_out);
@@ -78,7 +128,7 @@ public class LivePaperExample {
       if (true) {
         String url = "http://www.hp.com";
         String img_in = "http://h30499.www3.hp.com/t5/image/serverpage/image-id/55235i511F39504D83FCBA?v=mpbl-1";
-        String img_out = "image_watermark.jpg";
+        String img_out = "image_watermark2.jpg";
         System.out.println("Watermarking JPG image (of HP Logo)");
         System.out.println("  (" + img_in + ")");
         System.out.println("  into local file \"" + img_out + "\"");

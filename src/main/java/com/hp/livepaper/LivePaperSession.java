@@ -1,5 +1,8 @@
 package com.hp.livepaper;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -134,5 +137,15 @@ public class LivePaperSession {
       HttpsURLConnection.setDefaultHostnameVerifier(hv);
     }
     catch (Exception e) {}
+  }
+  public  static byte[] inputStreamToByteArray(InputStream is) throws IOException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    int next = is.read();
+    while (next > -1) {
+      bos.write(next);
+      next = is.read();
+    }
+    bos.flush();
+    return bos.toByteArray();
   }
 }
