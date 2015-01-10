@@ -31,7 +31,6 @@ public class LivePaperExample {
         QrTrigger qr0 = QrTrigger.create("My QrTrigger");
         System.out.println("    Trigger Name: \"" + qr0.getName() + "\"");
         System.out.println("    Trigger Id: \"" + qr0.getId() + "\"");
-        System.out.println("    Short URL: \"" + qr0.getQrCodeUrl() + "\"");
         System.out.println("    dateCreated: \"" + qr0.getDateCreated() + "\"");
         System.out.println("    dateModified: \"" + qr0.getDateModified() + "\"");
         System.out.println("    Links:");

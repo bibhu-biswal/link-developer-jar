@@ -8,9 +8,6 @@ import com.sun.jersey.api.client.ClientResponse;
 
 public class QrTrigger extends Trigger {
   private static String DEFAULT_SUBSCRIPTION = "month";
-  public String getQrCodeUrl() {
-    return getLinks().get("????shortURL????");
-  }
   public QrTrigger(String name) {
     this.setName(name);
   }
@@ -54,7 +51,6 @@ public class QrTrigger extends Trigger {
     super.assign_attributes(data);
   }
   public byte[] downloadQrCode() throws LivePaperException {
-  //String location = createLink("qrcode", url, "image", null, null) + "?width=200";
     String imageUrl = this.getLinks().get("image") + "?width=200";
     ClientResponse response = com.hp.livepaper.LivePaperSession.createWebResource(imageUrl).
         accept("image/png").
