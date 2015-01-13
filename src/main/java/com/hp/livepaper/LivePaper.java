@@ -252,4 +252,3 @@ public abstract class LivePaper {
         }
     }
 }
-//Java.net.SocketException: Network is unreachable [LivePaper$LivePaperSession.create_resource()]

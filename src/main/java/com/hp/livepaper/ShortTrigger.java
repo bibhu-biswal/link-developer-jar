@@ -15,7 +15,7 @@ public class ShortTrigger extends Trigger {
   public static ShortTrigger create(String name) throws Exception {
     return (new ShortTrigger(name)).save();
   }
-  public ShortTrigger save() throws Exception {
+  public ShortTrigger save() throws LivePaperException {
     return (ShortTrigger) super.save();
   }
   @Override
@@ -31,7 +31,7 @@ public class ShortTrigger extends Trigger {
       throw new IllegalArgumentException("Invalid state for this operation! (missing attribute: name)");
   }
   @Override
-  protected Map<String, Object> create_body() throws Exception {
+  protected Map<String, Object> create_body() {
     Map<String, Object> body = new HashMap<String, Object>();
     Map<String, Object> trigger = new HashMap<String, Object>();
     Map<String, Object> subscription = new HashMap<String, Object>();

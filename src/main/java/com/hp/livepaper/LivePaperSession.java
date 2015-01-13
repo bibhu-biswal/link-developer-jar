@@ -29,7 +29,7 @@ public class LivePaperSession {
   public enum Method {
     GET, POST, PUT, DELETE;
   }
-  private static String lpp_access_token = null;
+  private static String lpp_access_token = null; // TODO: these statics are not thread-safe!
   private static String lpp_basic_auth   = null;
   private static int network_error_retry_sleep_period = 3000;
   public static void setNetworkErrorRetrySleepPeriod(int sleepPeriodInMilliseconds) {
@@ -86,7 +86,7 @@ public class LivePaperSession {
         try {
           Thread.sleep(LivePaperSession.getRetrySleepPeriod());
         }
-        catch (InterruptedException e1) {
+        catch (InterruptedException unused) {
           throw e;
         }
         continue;

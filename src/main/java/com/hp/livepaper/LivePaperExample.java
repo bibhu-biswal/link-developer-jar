@@ -1,5 +1,7 @@
 package com.hp.livepaper;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Scanner;
 import java.io.FileOutputStream;
 import java.io.File;
@@ -22,9 +24,56 @@ public class LivePaperExample {
       String id = scan.nextLine();
       String secret = scan.nextLine();
       scan.close();
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss.SSS");
       if (true) {
         System.out.println("Authenticating with LivePaperSession...");
         LivePaperSession.setLppBasicAuth(id, secret);
+
+        System.out.println("Creating Watermarked Image...");
+        String imageToScanUrl = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
+        System.out.println("  Image.upload()...");
+        String uploaded_image_url = Image.upload(imageToScanUrl);
+        System.out.println("    uploaded image: "+uploaded_image_url);
+        System.out.println("  WmTrigger.create()...");
+        WmTrigger wm = WmTrigger.create("My WmTrigger", new WmTrigger.Strength(10), new WmTrigger.Resolution(75), uploaded_image_url);
+        System.out.println("    Trigger Name: \"" + wm.getName() + "\"");
+        System.out.println("    Trigger Id: \"" + wm.getId() + "\"");
+        System.out.println("    dateCreated: \"" + wm.getDateCreated() + "\"");
+        System.out.println("    dateModified: \"" + wm.getDateModified() + "\"");
+        System.out.println("    strength: \"" + wm.getStrength().toString() + "\"");
+        System.out.println("    resolution: \"" + wm.getResolution().toString() + "\"");
+        System.out.println("    imageUrl: \"" + wm.getImageUrl() + "\"");
+        System.out.println("    Links:");
+        for (String item : wm.getLinks().keySet())
+          System.out.println("      " + item + ": " + wm.getLinks().get(item));
+        System.out.println("  Payoff.create()...");
+        Payoff po = Payoff.create("My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
+        System.out.println("    Payoff Name: \"" + po.getName() + "\"");
+        System.out.println("    Payoff Id: \"" + po.getId() + "\"");
+        System.out.println("    Payoff URL: \"" + po.getId() + "\"");
+        System.out.println("    dateCreated: \"" + po.getDateCreated() + "\"");
+        System.out.println("    dateModified: \"" + po.getDateModified() + "\"");
+        System.out.println("    Links:");
+        for (String item : po.getLinks().keySet())
+          System.out.println("      " + item + ": " + po.getLinks().get(item));
+        System.out.println("  Link.create()...");
+        Link ln = Link.create("My Link", wm, po);
+        System.out.println("    [Link Name: \"" + ln.getName() + "\"]");
+        System.out.println("    [Trigger Id: \"" + ln.getTrigger().getId() + "\"]");
+        System.out.println("    Payoff Id: \"" + ln.getPayoff().getId() + "\"");
+        System.out.println("    dateCreated: \"" + ln.getDateCreated() + "\"");
+        System.out.println("    dateModified: \"" + ln.getDateModified() + "\"");
+        System.out.println("    Links:");
+        for (String item : ln.getLinks().keySet())
+          System.out.println("      " + item + ": " + ln.getLinks().get(item));
+        System.out.println("  Downloading watermarked image...");
+        byte[] wmbytes = wm.downloadWatermarkedImage();
+        String wm_img_out = "image_watermark_"+sdf.format(Calendar.getInstance().getTime())+".jpg";
+        FileOutputStream fos = new FileOutputStream(wm_img_out);
+        fos.write(wmbytes);
+        fos.close();
+        System.out.println("    into local file \"" + wm_img_out + '"');
+        System.out.println("  Done creating Watermarked Image...");
 
         System.out.println("Creating QR Code...");
         System.out.println("  QrTrigger.create()...");
@@ -58,10 +107,10 @@ public class LivePaperExample {
           System.out.println("      " + item + ": " + ln0.getLinks().get(item));
         System.out.println("  Downloading QR code...");
         byte[] qrbytes = qr0.downloadQrCode();
-        String img_out = "image_qr_code.png";
-        FileOutputStream fos = new FileOutputStream(img_out);
-        fos.write(qrbytes);
-        fos.close();
+        String img_out = "image_qr_code_"+sdf.format(Calendar.getInstance().getTime())+".png";
+        FileOutputStream fos0 = new FileOutputStream(img_out);
+        fos0.write(qrbytes);
+        fos0.close();
         System.out.println("    into local file \"" + img_out + '"');
         System.out.println("  Done creating QR Code.");
 
@@ -98,46 +147,47 @@ public class LivePaperExample {
           System.out.println("      " + item + ": " + ln1.getLinks().get(item));
         System.out.println("  Done creating Short URL.");
 
-        System.out.println();
-        //System.exit(0);
+        System.out.println("All done with example!");
       }
-      System.out.println("Authenticating with LivePaper...");
-      LivePaper lp = LivePaper.auth(id, secret);
-      if (lp == null) {
-        System.err.println("  Authentication failure!");
-        System.exit(1);
+      if ( false ) {
+        System.out.println("Authenticating with LivePaper...");
+        LivePaper lp = LivePaper.auth(id, secret);
+        if (lp == null) {
+          System.err.println("  Authentication failure!");
+          System.exit(1);
+        }
+        if (true) {
+          String url = "http://www.hp.com";
+          System.out.println("Creating short URL for \"" + url + '"');
+          String short_url = lp.shorten(url);
+          System.out.println("  Your short URL is => \"" + short_url + '"');
+        }
+        if (true) {
+          String url = "http://www.hp.com";
+          String img_out = "image_qr_code_"+sdf.format(Calendar.getInstance().getTime())+".png";
+          System.out.println("Creating QR code for \"" + url + '"');
+          byte[] qrbytes = lp.qr_bytes(url);
+          FileOutputStream fos = new FileOutputStream(img_out);
+          fos.write(qrbytes);
+          fos.close();
+          System.out.println("  into local file \"" + img_out + '"');
+        }
+        // Watermarked image
+        if (true) {
+          String url = "http://www.hp.com";
+          String img_in = "http://h30499.www3.hp.com/t5/image/serverpage/image-id/55235i511F39504D83FCBA?v=mpbl-1";
+          String img_out = "image_watermark_"+sdf.format(Calendar.getInstance().getTime())+".jpg";
+          System.out.println("Watermarking JPG image (of HP Logo)");
+          System.out.println("  (" + img_in + ")");
+          System.out.println("  into local file \"" + img_out + "\"");
+          System.out.println("  which, when scanned with the LinkReader app, will take you to \"" + url + "\"");
+          byte[] wm_bytes = lp.watermark_bytes(img_in, url);
+          FileOutputStream fos2 = new FileOutputStream(img_out);
+          fos2.write(wm_bytes);
+          fos2.close();
+        }
+        System.out.println("done!");
       }
-      if (true) {
-        String url = "http://www.hp.com";
-        System.out.println("Creating short URL for \"" + url + '"');
-        String short_url = lp.shorten(url);
-        System.out.println("  Your short URL is => \"" + short_url + '"');
-      }
-      if (true) {
-        String url = "http://www.hp.com";
-        String img_out = "image_qr_code2.png";
-        System.out.println("Creating QR code for \"" + url + '"');
-        byte[] qrbytes = lp.qr_bytes(url);
-        FileOutputStream fos = new FileOutputStream(img_out);
-        fos.write(qrbytes);
-        fos.close();
-        System.out.println("  into local file \"" + img_out + '"');
-      }
-      // Watermarked image
-      if (true) {
-        String url = "http://www.hp.com";
-        String img_in = "http://h30499.www3.hp.com/t5/image/serverpage/image-id/55235i511F39504D83FCBA?v=mpbl-1";
-        String img_out = "image_watermark2.jpg";
-        System.out.println("Watermarking JPG image (of HP Logo)");
-        System.out.println("  (" + img_in + ")");
-        System.out.println("  into local file \"" + img_out + "\"");
-        System.out.println("  which, when scanned with the LinkReader app, will take you to \"" + url + "\"");
-        byte[] wm_bytes = lp.watermark_bytes(img_in, url);
-        FileOutputStream fos2 = new FileOutputStream(img_out);
-        fos2.write(wm_bytes);
-        fos2.close();
-      }
-      System.out.println("done!");
     }
     catch (Exception e) {
       System.err.print("ERROR: ");

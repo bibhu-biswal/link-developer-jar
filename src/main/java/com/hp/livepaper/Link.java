@@ -50,7 +50,7 @@ public class Link extends BaseObject {
   protected String api_url() {
     return LivePaperSession.LP_API_HOST + "/api/v1/" + "links";
   }
-  public Link save() throws Exception {
+  public Link save() throws LivePaperException {
     return (Link) super.save();
   }
   @Override
@@ -75,7 +75,7 @@ public class Link extends BaseObject {
     }
   }
   @Override
-  protected Map<String, Object> create_body() throws Exception {
+  protected Map<String, Object> create_body() {
     Map<String, Object> linkContent = new HashMap<String, Object>();
     linkContent.put("name", this.getTrigger().getName());
     linkContent.put("triggerId", this.getTrigger().getId());

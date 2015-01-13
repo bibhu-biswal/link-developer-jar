@@ -14,7 +14,7 @@ public class QrTrigger extends Trigger {
   public static QrTrigger create(String name) throws Exception {
     return (new QrTrigger(name)).save();
   }
-  public QrTrigger save() throws Exception {
+  public QrTrigger save() throws LivePaperException {
     return (QrTrigger) super.save();
   }
   @Override
@@ -30,7 +30,7 @@ public class QrTrigger extends Trigger {
       throw new IllegalArgumentException("Invalid state for this operation! (missing attribute: name)");
   }
   @Override
-  protected Map<String, Object> create_body() throws Exception {
+  protected Map<String, Object> create_body() {
     Map<String, Object> body = new HashMap<String, Object>();
     Map<String, Object> trigger = new HashMap<String, Object>();
     Map<String, Object> subscription = new HashMap<String, Object>();

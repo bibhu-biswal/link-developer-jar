@@ -44,16 +44,16 @@ public abstract class BaseObject {
   public Map<String, String> getLinks() {
     return links;
   }
-  public BaseObject save() throws Exception {
+  public BaseObject save() throws LivePaperException {
     validate_attributes();
     if (getId() == null || getId().length() == 0) {
-      Map<String, Object> response = rest_request(api_url(), Method.POST, create_body());
+      Map<String, Object> response = rest_request_post(api_url(), Method.POST, create_body());
       parse(response);
     }
     return this;
   }
-  public static Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws Exception {
-    // TODO: support "header_x_user_info: app=live_paper_jar" (so that API can track the source of the API calls)
+  public static Map<String, Object> rest_request_post(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
+    // TODO: support "x_user_info: app=live_paper_jar" (so that API can track the source of the API calls)
     int responseCode = -1;
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
@@ -73,8 +73,8 @@ public abstract class BaseObject {
         responseCode = response.getStatus();
         if (responseCode == 401) { // authentication problem
           tries++;
-          if (tries == 0)
-            throw new LivePaperException("Unable to Authenticate! (after " + (tries - 1) + " tries)");
+          if (tries > maxTries)
+            throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
           continue;
         }
         break;
@@ -82,7 +82,7 @@ public abstract class BaseObject {
       catch (com.sun.jersey.api.client.ClientHandlerException e) {
         tries++;
         if (tries > maxTries)
-          throw e;
+          throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
         System.err.println("Warning: Network error! retrying (" + tries + " of "+maxTries+")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
@@ -106,7 +106,7 @@ public abstract class BaseObject {
   }
   protected abstract void validate_attributes();
   protected abstract String api_url();
-  protected abstract Map<String, Object> create_body() throws Exception;
+  protected abstract Map<String, Object> create_body();
   protected abstract BaseObject parse(Map<String, Object> responseMap);
   @SuppressWarnings("unchecked")
   protected void assign_attributes(Map<String, Object> data) {

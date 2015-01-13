@@ -20,12 +20,12 @@ cp="$cp:$HOME/.m2/repository/io/fastjson/boon/0.24/boon-0.24.jar"
 java $proxy_opts -cp $cp:$jar com.hp.livepaper.LivePaperExample || exit $?
 
 echo
-echo "${CYAN}Running Additional Tests [com.hp.livepaper.LivePaperExample.main()]...${RESET}"
+echo "${CYAN}Running Additional Tests...${RESET}"
 cd "../playground/lpapi_exemplar_java/"
 if [ $? != 0 ]; then
   echo "ERROR: cannot find directory holding test script!"; exit 1
 fi
+echo "  ${CYAN}copying latest JAR to lpapi_exemplar_java...${RESET}"
 cp -p $jar jars/
+echo "  ${CYAN}Running TestLinkAPI.sh [com.hp.livepaper.LivePaperExample.main()]...${RESET}"
 ./TestLinkAPI.sh
-
-

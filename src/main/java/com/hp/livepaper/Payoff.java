@@ -44,7 +44,7 @@ public class Payoff extends BaseObject {
   protected String api_url() {
     return LivePaperSession.LP_API_HOST + "/api/v1/" + "payoffs";
   }
-  public Payoff save() throws Exception {
+  public Payoff save() throws LivePaperException {
     return (Payoff) super.save();
   }
   @Override
@@ -70,7 +70,7 @@ public class Payoff extends BaseObject {
     }
   }
   @Override
-  protected Map<String, Object> create_body() throws Exception {
+  protected Map<String, Object> create_body() {
     Map<String, Object> payoff = new HashMap<String, Object>();
     switch (getType()) {
       case WEB_PAYOFF:
