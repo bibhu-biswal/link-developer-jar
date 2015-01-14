@@ -60,11 +60,12 @@ public abstract class BaseObject {
     ObjectMapper mapper = JsonFactory.create();
     String body = mapper.writeValueAsString(bodyMap);
     Builder webResource = null;
-    if ( this instanceof WmTrigger /*and this is an image download*/) {
+    webResource = LivePaperSession.createWebResource(url);
+    if ( false )
+      // Live_paper gem does not include the "x_user_info" header tag for watermarked image downloads due to problems.
+      // But, I didn't have that problem in this Java JAR, so am always tagging with "x_user_info"
       webResource = LivePaperSession.createWebResourceUnTagged(url);
-    } else {
-      webResource = LivePaperSession.createWebResource(url);
-    }
+
     ClientResponse response = null;
     while (true) {
       try {
