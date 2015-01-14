@@ -7,7 +7,7 @@ import org.boon.json.JsonFactory;
 import org.boon.json.ObjectMapper;
 import com.hp.livepaper.LivePaperSession.Method;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
 
 public abstract class BaseObject {
   public static final String LP_API_HOST = "https://www.livepaperapi.com";
@@ -52,14 +52,19 @@ public abstract class BaseObject {
     }
     return this;
   }
-  public static Map<String, Object> rest_request_post(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
+  public Map<String, Object> rest_request_post(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
     // TODO: support "x_user_info: app=live_paper_jar" (so that API can track the source of the API calls)
     int responseCode = -1;
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     ObjectMapper mapper = JsonFactory.create();
     String body = mapper.writeValueAsString(bodyMap);
-    WebResource webResource = LivePaperSession.createWebResource(url);
+    Builder webResource = null;
+    if ( this instanceof WmTrigger /*and this is an image download*/) {
+      webResource = LivePaperSession.createWebResourceUnTagged(url);
+    } else {
+      webResource = LivePaperSession.createWebResource(url);
+    }
     ClientResponse response = null;
     while (true) {
       try {

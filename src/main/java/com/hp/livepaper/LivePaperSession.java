@@ -20,6 +20,7 @@ import org.boon.json.ObjectMapper;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
@@ -40,7 +41,7 @@ public class LivePaperSession {
   public static int getRetrySleepPeriod() {
     return network_error_retry_sleep_period;
   }
-  private static int network_error_retry_count = 3;
+  private static int network_error_retry_count = 5;
   public static void setNetworkErrorRetryCount(int retryCount) {
     network_error_retry_count = retryCount;
     if ( network_error_retry_count < 0 )
@@ -57,7 +58,7 @@ public class LivePaperSession {
         if (lpp_access_token != null && lpp_access_token.length() > 0)
           return lpp_access_token;
         String body = "grant_type=client_credentials&scope=all";
-        WebResource webResource = createWebResource(LP_API_HOST + "/auth/v1/token");
+        Builder webResource = createWebResource(LP_API_HOST + "/auth/v1/token");
         ClientResponse response = webResource.
             header("Content-Type", "application/x-www-form-urlencoded").
             accept("application/json").
@@ -106,12 +107,15 @@ public class LivePaperSession {
       throw new NullPointerException("Blank arguments not accepted.");
     LivePaperSession.lpp_basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes("UTF-8"));
   }
-  public static WebResource createWebResource(String location) {
+  public static Builder createWebResource(String location) {
+    return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v"+Version.VERSION);
+  }
+  public static Builder createWebResourceUnTagged(String location) {
     disableCertificateValidation();
     ClientConfig config = new DefaultClientConfig();
     Client client = Client.create(config);
     WebResource webResource = client.resource(UriBuilder.fromUri(location).build());
-    return webResource;
+    return webResource.getRequestBuilder();
   }
   private static void disableCertificateValidation() {
     // Create a trust manager that does not validate certificate chains
@@ -147,5 +151,17 @@ public class LivePaperSession {
     }
     bos.flush();
     return bos.toByteArray();
+  }
+  public static byte[] getImageBytes(String imageType, String imageUrl) throws LivePaperException {
+    ClientResponse response = LivePaperSession.createWebResource(imageUrl).
+        accept(imageType).
+        header("Authorization", LivePaperSession.getLppAccessToken()).
+        get(ClientResponse.class);
+    try {
+      return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
+    }
+    catch (IOException e) {
+      throw new com.hp.livepaper.LivePaperException("Failed to download \""+imageType+"\" image! (from "+imageUrl+")", e);
+    }
   }
 }

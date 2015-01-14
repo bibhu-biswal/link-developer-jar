@@ -3,7 +3,7 @@ package com.hp.livepaper;
 import java.io.IOException;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
 
 public class Image {
   public static final String STORAGE_API_HOST = "https://storage.livepaperapi.com/objects/v1/files";
@@ -19,7 +19,7 @@ public class Image {
     int tries = 0;
     while ( true ) {
       try {
-        WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(STORAGE_API_HOST);       
+        Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(STORAGE_API_HOST);
         ClientResponse response = webResource.
             header("Content-Type", "image/jpg").
             header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
@@ -47,7 +47,7 @@ public class Image {
     int tries = 0;
     while ( true ) {
       try {
-        WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(imageUrl);
+        Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(imageUrl);
         ClientResponse imgResponse = null;
         imgResponse =  webResource.
             accept("image/jpg").

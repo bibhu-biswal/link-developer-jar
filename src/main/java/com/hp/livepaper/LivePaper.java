@@ -82,7 +82,7 @@ public abstract class LivePaper {
             if(url == null)
                 return null;
             String location = createLink("qrcode", url, "image", null, null) + "?width=200";
-            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);      
+            WebResource.Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);
             ClientResponse response =  webResource.
                 accept("image/png").
                 header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
@@ -121,7 +121,7 @@ public abstract class LivePaper {
             Map<String, String> watermark = new HashMap<String, String>();
             watermark.put("imageURL",image);        
             String location = createLink("watermark", url, "image", watermark, "watermark");
-            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);  
+            WebResource.Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(location);
             ClientResponse response =  webResource.
                 header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
                 accept("image/jpeg").
@@ -144,7 +144,7 @@ public abstract class LivePaper {
             if(imageLoc.contains(url))
                 return imageLoc;
             //get the image bytes from the image hosting website, and upload the image on livepaper storage
-            WebResource source = com.hp.livepaper.LivePaperSession.createWebResource(imageLoc);
+            WebResource.Builder source = com.hp.livepaper.LivePaperSession.createWebResource(imageLoc);
             ClientResponse imgResponse = null;
             try {
               imgResponse =  source.accept("image/jpg").get(ClientResponse.class);
@@ -152,7 +152,7 @@ public abstract class LivePaper {
               throw new LivePaperException("Unable to obtain image from \""+imageLoc+"\"!", e);
             }
             byte[] bytes = inputStreamToByteArray(imgResponse.getEntityInputStream());
-            WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(url);       
+            WebResource.Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(url);
             ClientResponse response = webResource.
                 header("Content-Type", "image/jpg").
                 header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
@@ -211,7 +211,7 @@ public abstract class LivePaper {
               String HostURL = LP_API_HOST + "/api/v1/" + resource+"s";
               ObjectMapper mapper = JsonFactory.create();
               String body = mapper.writeValueAsString(bodyMap);
-              WebResource webResource = com.hp.livepaper.LivePaperSession.createWebResource(HostURL);
+              WebResource.Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(HostURL);
               ClientResponse response = webResource.
                   header("Content-Type", "application/json").
                   accept("application/json").

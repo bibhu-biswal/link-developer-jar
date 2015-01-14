@@ -74,6 +74,7 @@ public class LivePaperExample {
         fos.close();
         System.out.println("    into local file \"" + wm_img_out + '"');
         System.out.println("  Done creating Watermarked Image...");
+        System.out.println();
 
         System.out.println("Creating QR Code...");
         System.out.println("  QrTrigger.create()...");
@@ -113,6 +114,7 @@ public class LivePaperExample {
         fos0.close();
         System.out.println("    into local file \"" + img_out + '"');
         System.out.println("  Done creating QR Code.");
+        System.out.println();
 
         System.out.println("Creating Short URL...");
         System.out.println("  ShortTrigger.create()...");
@@ -146,47 +148,8 @@ public class LivePaperExample {
         for (String item : ln1.getLinks().keySet())
           System.out.println("      " + item + ": " + ln1.getLinks().get(item));
         System.out.println("  Done creating Short URL.");
-
+        System.out.println();
         System.out.println("All done with example!");
-      }
-      if ( false ) {
-        System.out.println("Authenticating with LivePaper...");
-        LivePaper lp = LivePaper.auth(id, secret);
-        if (lp == null) {
-          System.err.println("  Authentication failure!");
-          System.exit(1);
-        }
-        if (true) {
-          String url = "http://www.hp.com";
-          System.out.println("Creating short URL for \"" + url + '"');
-          String short_url = lp.shorten(url);
-          System.out.println("  Your short URL is => \"" + short_url + '"');
-        }
-        if (true) {
-          String url = "http://www.hp.com";
-          String img_out = "image_qr_code_"+sdf.format(Calendar.getInstance().getTime())+".png";
-          System.out.println("Creating QR code for \"" + url + '"');
-          byte[] qrbytes = lp.qr_bytes(url);
-          FileOutputStream fos = new FileOutputStream(img_out);
-          fos.write(qrbytes);
-          fos.close();
-          System.out.println("  into local file \"" + img_out + '"');
-        }
-        // Watermarked image
-        if (true) {
-          String url = "http://www.hp.com";
-          String img_in = "http://h30499.www3.hp.com/t5/image/serverpage/image-id/55235i511F39504D83FCBA?v=mpbl-1";
-          String img_out = "image_watermark_"+sdf.format(Calendar.getInstance().getTime())+".jpg";
-          System.out.println("Watermarking JPG image (of HP Logo)");
-          System.out.println("  (" + img_in + ")");
-          System.out.println("  into local file \"" + img_out + "\"");
-          System.out.println("  which, when scanned with the LinkReader app, will take you to \"" + url + "\"");
-          byte[] wm_bytes = lp.watermark_bytes(img_in, url);
-          FileOutputStream fos2 = new FileOutputStream(img_out);
-          fos2.write(wm_bytes);
-          fos2.close();
-        }
-        System.out.println("done!");
       }
     }
     catch (Exception e) {

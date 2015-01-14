@@ -1,10 +1,8 @@
 package com.hp.livepaper;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.boon.json.JsonFactory;
-import com.sun.jersey.api.client.ClientResponse;
 
 public class WmTrigger extends Trigger {
   private static String DEFAULT_SUBSCRIPTION = "month";
@@ -50,9 +48,6 @@ public class WmTrigger extends Trigger {
     trigger.put("watermark", watermark);
     trigger.put("subscription", subscription);
     body.put("trigger", trigger);
-    // if (options != null) {
-    // trigger.put(optionName, options);
-    // }
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
     return body;
@@ -62,18 +57,7 @@ public class WmTrigger extends Trigger {
     super.assign_attributes(data);
   }
   public byte[] downloadWatermarkedImage() throws LivePaperException {
-    ClientResponse response = com.hp.livepaper.LivePaperSession.createWebResource(this.getLinks().get("image")).
-        accept("image/jpeg").
-        header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
-        get(ClientResponse.class);
-    byte[] bytes;
-    try {
-      bytes = LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
-      return bytes;
-    }
-    catch (IOException e) {
-      throw new com.hp.livepaper.LivePaperException("Failed to download watermarked image!", e);
-    }
+    return LivePaperSession.getImageBytes("image/jpeg",this.getLinks().get("image"));
   }
   public Strength getStrength() {
     return strength;

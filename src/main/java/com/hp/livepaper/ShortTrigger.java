@@ -40,9 +40,6 @@ public class ShortTrigger extends Trigger {
     trigger.put("type", "shorturl");
     subscription.put("package", DEFAULT_SUBSCRIPTION);
     trigger.put("subscription", subscription);
-    // if (options != null) {
-    // trigger.put(optionName, options);
-    // }
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
     return body;

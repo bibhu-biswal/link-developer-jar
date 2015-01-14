@@ -11,19 +11,27 @@ if [ "$HTTP_PROXY" ];then
   echo "${CYAN}  (note that image uploads for watermarking seem to fail behind a proxy)${RESET}"
 fi
 
+echo "${CYAN}Checking version...${RESET}"
 ver=$(grep '<version>' pom.xml | head -1 | sed -e 's:[^0-9]*\([0-9]\):\1:' -e 's:<.*::')
 jar=$PWD/target/livepaper-$ver.jar
-echo "${CYAN}Running Basic Test [com.hp.livepaper.LivePaperExample.main()]...${RESET}"
 cp="$HOME/.m2/repository/com/sun/jersey/jersey-client/1.18.3/jersey-client-1.18.3.jar"
 cp="$cp:$HOME/.m2/repository/com/sun/jersey/jersey-core/1.18.3/jersey-core-1.18.3.jar"
 cp="$cp:$HOME/.m2/repository/io/fastjson/boon/0.24/boon-0.24.jar"
+jar_version=$(java $proxy_opts -cp $cp:$jar com.hp.livepaper.Version)
+if [ "$jar_version" != "$ver" ]; then
+  echo "${RED}ERROR: version in pom.xml ($ver) does not match${RESET}"
+  echo "${RED}       version in the jar (Version.VERSION: ${jar_version})!${RESET}"; exit 1
+  exit 1
+fi
+
+echo "${CYAN}Running Basic Test [com.hp.livepaper.LivePaperExample.main()]...${RESET}"
 java $proxy_opts -cp $cp:$jar com.hp.livepaper.LivePaperExample || exit $?
 
 echo
 echo "${CYAN}Running Additional Tests...${RESET}"
 cd "../playground/lpapi_exemplar_java/"
 if [ $? != 0 ]; then
-  echo "ERROR: cannot find directory holding test script!"; exit 1
+  echo "${CYAN}ERROR: cannot find directory holding test script!${RESET}"; exit 1
 fi
 echo "  ${CYAN}copying latest JAR to lpapi_exemplar_java...${RESET}"
 cp -p $jar jars/
