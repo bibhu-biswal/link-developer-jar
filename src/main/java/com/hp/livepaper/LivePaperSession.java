@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.Map;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -30,12 +31,12 @@ public class LivePaperSession {
   public enum Method {
     GET, POST, PUT, DELETE;
   }
-  private static String lpp_access_token = null; // TODO: these statics are not thread-safe!
-  private static String lpp_basic_auth   = null;
-  private static int network_error_retry_sleep_period = 3000;
+  private static String lpp_access_token                 = null; // TODO: these statics are not thread-safe!
+  private static String lpp_basic_auth                   = null;
+  private static int    network_error_retry_sleep_period = 3000;
   public static void setNetworkErrorRetrySleepPeriod(int sleepPeriodInMilliseconds) {
     network_error_retry_sleep_period = sleepPeriodInMilliseconds;
-    if ( network_error_retry_sleep_period < 0 )
+    if (network_error_retry_sleep_period < 0)
       network_error_retry_sleep_period = 1000;
   }
   public static int getRetrySleepPeriod() {
@@ -44,7 +45,7 @@ public class LivePaperSession {
   private static int network_error_retry_count = 5;
   public static void setNetworkErrorRetryCount(int retryCount) {
     network_error_retry_count = retryCount;
-    if ( network_error_retry_count < 0 )
+    if (network_error_retry_count < 0)
       network_error_retry_count = 0;
   }
   public static int getNetworkErrorRetryCount() {
@@ -82,7 +83,7 @@ public class LivePaperSession {
         tries++;
         if (tries > maxTries)
           throw e;
-        System.err.println("Warning: Network error! retrying (" + tries + " of "+maxTries+")...");
+        System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
           Thread.sleep(LivePaperSession.getRetrySleepPeriod());
@@ -108,7 +109,7 @@ public class LivePaperSession {
     LivePaperSession.lpp_basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes("UTF-8"));
   }
   public static Builder createWebResource(String location) {
-    return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v"+Version.VERSION);
+    return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v" + Version.VERSION);
   }
   public static Builder createWebResourceUnTagged(String location) {
     disableCertificateValidation();
@@ -142,7 +143,7 @@ public class LivePaperSession {
     }
     catch (Exception e) {}
   }
-  public  static byte[] inputStreamToByteArray(InputStream is) throws IOException {
+  public static byte[] inputStreamToByteArray(InputStream is) throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     int next = is.read();
     while (next > -1) {
@@ -161,7 +162,73 @@ public class LivePaperSession {
       return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
     }
     catch (IOException e) {
-      throw new com.hp.livepaper.LivePaperException("Failed to download \""+imageType+"\" image! (from "+imageUrl+")", e);
+      throw new com.hp.livepaper.LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
+    }
+  }
+  public static Map<String, Object> rest_request(String url, Method method) throws LivePaperException {
+    return rest_request(url, method, new HashMap<String, Object>());
+  }
+  public static Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
+    // TODO: support "x_user_info: app=live_paper_jar" (so that API can track the source of the API calls)
+    int responseCode = -1;
+    int maxTries = LivePaperSession.getNetworkErrorRetryCount();
+    int tries = 0;
+    ObjectMapper mapper = JsonFactory.create();
+    String body = mapper.writeValueAsString(bodyMap);
+    Builder webResource = null;
+    webResource = LivePaperSession.createWebResource(url);
+    ClientResponse response = null;
+    while (true) {
+      try {
+        if (method == Method.POST) {
+          response = webResource.
+              header("Content-Type", "application/json").
+              accept("application/json").
+              header("Authorization", LivePaperSession.getLppAccessToken()).
+              post(ClientResponse.class, body);
+        }
+        if (method == Method.GET) {
+          response = webResource.
+              header("Content-Type", "application/json").
+              accept("application/json").
+              header("Authorization", LivePaperSession.getLppAccessToken()).
+              get(ClientResponse.class);
+        }
+        responseCode = response.getStatus();
+        if (responseCode == 401) { // authentication problem
+          tries++;
+          if (tries > maxTries)
+            throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
+          continue;
+        }
+        break;
+      }
+      catch (com.sun.jersey.api.client.ClientHandlerException e) {
+        tries++;
+        if (tries > maxTries)
+          throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
+        System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
+        System.err.println("  (error was \"" + e.getMessage() + "\")");
+        try {
+          Thread.sleep(LivePaperSession.getRetrySleepPeriod());
+        }
+        catch (InterruptedException e1) {
+          throw e;
+        }
+        continue;
+      }
+    }
+    switch (responseCode) {
+      case 200: // GET  (object lists)    returns 200 when OK
+      case 201: // POST (object creation) returns 201 when OK
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseMap = (Map<String, Object>)mapper.readValue(response.getEntity(String.class), Map.class);
+        return responseMap;
+      default:
+        throw new LivePaperException(""+responseCode+": "+response.getEntity(String.class));
+//      System.out.println(responseCode);
+//      System.out.println(response.getEntity(String.class));
+//      return null;
     }
   }
 }

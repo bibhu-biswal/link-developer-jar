@@ -15,6 +15,9 @@ public class WmTrigger extends Trigger {
     this.setStrength(strength);
     this.setResolution(resolution);
   }
+  public WmTrigger(Map<String, Object> map) {
+    this.assign_attributes(map);
+  }
   public static WmTrigger create(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) throws Exception {
     return (new WmTrigger(name, strength, resolution, imageUrl)).save();
   }
@@ -22,7 +25,7 @@ public class WmTrigger extends Trigger {
     return (WmTrigger) super.save();
   }
   @Override
-  protected BaseObject parse(Map<String, Object> responseMap) {
+  protected WmTrigger parse(Map<String, Object> responseMap) {
     @SuppressWarnings("unchecked")
     Map<String, Object> data = (Map<String, Object>) responseMap.get(getItemKey());
     assign_attributes(data);
@@ -53,8 +56,41 @@ public class WmTrigger extends Trigger {
     return body;
   }
   @Override
-  protected void assign_attributes(Map<String, Object> data) {
-    super.assign_attributes(data);
+  protected void assign_attributes(Map<String, Object> map) {
+    super.assign_attributes(map);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> watermark = (Map<String, Object>)map.get("watermark");
+    if ( watermark != null ) {
+      setImageUrl((String)watermark.get("imageURL"));
+      resolution = new Resolution((Integer)watermark.get("resolution"));
+      strength   = new Strength((Integer)watermark.get("strength"));
+    }
+    //@formatter:off
+    /*{
+       type=watermark,
+       id=PHDsCQzISqiy-lPvEVXpSw,
+       name=Business Card - Back 600ppi,
+       state=ACTIVE,
+       dateCreated=2015-01-13T21:27:59.000+0000,
+       dateModified=2015-01-13T21:27:59.000+0000,
+       startDate=2015-01-13T21:27:57.887+0000,
+       endDate=2017-01-13T21:27:57.887+0000,
+       link=[
+         {href=https://watermark.livepaperapi.com/watermark/v1/triggers/PHDsCQzISqiy-lPvEVXpSw/image,
+          rel=image},
+         {href=https://www.livepaperapi.com/analytics/v1/triggers/PHDsCQzISqiy-lPvEVXpSw,
+          rel=analytics},
+         {href=https://www.livepaperapi.com/api/v1/triggers/PHDsCQzISqiy-lPvEVXpSw,
+          rel=self}],
+       subscription={
+         expiryDate=2017-01-13T21:27:57.887+0000,
+         startDate=2015-01-13T21:27:57.887+0000},
+       watermark={
+         imageURL=https://storage.livepaperapi.com/objects/files/nbXURFpISzW7IVUZjD7rMA,
+         resolution=75,
+         strength=7}
+      }*/
+    //@formatter:on
   }
   public byte[] downloadWatermarkedImage() throws LivePaperException {
     return LivePaperSession.getImageBytes("image/jpeg",this.getLinks().get("image"));
@@ -91,6 +127,12 @@ public class WmTrigger extends Trigger {
               "Resolution must be a positive integer ranging from "+Resolution.MIN_RESOLUTION+" to "+Resolution.MAX_RESOLUTION+".");
       this.resolution = resolution;
     }
+    public Resolution(Integer resolution) {
+      this(resolution.intValue());
+    }
+    public Resolution(String resolution) {
+      this(Integer.parseInt(resolution));
+    }
     public int getResolution() {
       return resolution;
     }
@@ -108,6 +150,12 @@ public class WmTrigger extends Trigger {
         throw new IllegalArgumentException(
             "Strength must be a positive integer ranging from "+Strength.MIN_STRENGTH+" to "+Strength.MAX_STRENGTH+".");
       this.strength = strength;
+    }
+    public Strength(Integer strength) {
+      this(strength.intValue());
+    }
+    public Strength(String strength) {
+      this(Integer.parseInt(strength));
     }
     public int getStrength() {
       return strength;

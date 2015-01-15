@@ -5,6 +5,7 @@ import java.util.Map;
 import org.boon.json.JsonFactory;
 
 public class Payoff extends BaseObject {
+  public static final String API_URL = LivePaperSession.LP_API_HOST + "/api/v1/" + "payoffs";
   public enum Type {
     WEB_PAYOFF /* , RICH_PAYOFF; */
   } // TODO: support Rich Payoff
@@ -42,7 +43,7 @@ public class Payoff extends BaseObject {
   // Overrides
   @Override
   protected String api_url() {
-    return LivePaperSession.LP_API_HOST + "/api/v1/" + "payoffs";
+    return API_URL;
   }
   public Payoff save() throws LivePaperException {
     return (Payoff) super.save();

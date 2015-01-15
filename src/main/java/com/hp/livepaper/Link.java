@@ -5,6 +5,7 @@ import java.util.Map;
 import org.boon.json.JsonFactory;
 
 public class Link extends BaseObject {
+  public static final String API_URL = LivePaperSession.LP_API_HOST + "/api/v1/" + "links";
   // public static methods
   public static String getItemKey() {
     return "link";
@@ -48,7 +49,7 @@ public class Link extends BaseObject {
   // Overrides
   @Override
   protected String api_url() {
-    return LivePaperSession.LP_API_HOST + "/api/v1/" + "links";
+    return API_URL;
   }
   public Link save() throws LivePaperException {
     return (Link) super.save();
