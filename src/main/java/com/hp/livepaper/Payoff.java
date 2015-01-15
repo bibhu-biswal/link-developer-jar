@@ -42,6 +42,9 @@ public class Payoff extends BaseObject {
   public Payoff(Map<String, Object> map) {
     this.assign_attributes(map);
   }
+  public static Payoff get(String id) throws LivePaperException {
+    return new Payoff(LivePaperSession.rest_request(API_URL+"/"+id, Method.GET));
+  }
   public static Payoff create(String name, Type type, String url) throws Exception {
     return (new Payoff(name, type, url)).save();
   }

@@ -17,6 +17,9 @@ public abstract class Trigger extends BaseObject {
       return new WmTrigger(map);
     throw new IllegalArgumentException("Trigger.create() passed data that does not represent a Trigger!");
   }
+  public static Trigger get(String id) throws LivePaperException {
+    return create(LivePaperSession.rest_request(API_URL+"/"+id, Method.GET));
+  }
   @Override
   protected String api_url() {
     return API_URL;

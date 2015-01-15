@@ -6,10 +6,15 @@ watermarked images, QR codes, and mobile-friendly shortened URLs.
 ## Installation
 
 This git repo contains the source for the LivePaper JAR.  You can
-build the JAR with "mvn package".  The latest build of the jar is also
-stored (by Maven) in the target/ directory.  You may also download the
-latest released version of the JAR from link.livepaper.com ["LivePaper
-JAR"](https://www.linkcreationstudio.com/api/libraries/java/) page.
+build the JAR with "mvn package".  Maven is configured (in pom.xml) to
+use Java 1.8 and will complain if it cannot find it.  You can use the
+JAVA_HOME variable to tell Maven where your Java 1.8 is installed (see
+script/create_jar_with_maven.sh and script/set_JAVA_HOME).
+
+The latest Maven build of the jar is stored in the target/ directory.
+(You may also download the latest released version of the JAR from
+link.livepaper.com ["LivePaper
+JAR"](https://www.linkcreationstudio.com/api/libraries/java/) page).
 
 ## Usage As Documented on LivePaper API Site
 
@@ -19,9 +24,10 @@ JAR"](https://www.linkcreationstudio.com/api/libraries/java/) page.
 
 ## Example Code In the JAR
 
-The JAR includes a main() that you can run which will create some
-example links for you.  Just download LivePaper's dependent jars to
-your ~/.m2 maven repository directory and run the main() method of
+The JAR itself includes a main() that you can run which will create a
+short url, qr code and watermarked image, and output information about
+them as they are created.  To run it, just download LivePaper's
+dependent jars as shown, and run the main() method of
 com.hp.livepaper.LivePaperExample, as shown:
 
 ```shell
@@ -94,12 +100,3 @@ have an 'Run/Debug configurations' in Eclipse's menus.  Add one with:
 * Eclipse menu 'Run => Debug Configurations'
   * Add this 'Java Application' configuration with 
     * add one named 'LivePaperExample.main', with main class of 'com.hp.livepaper.LivePaperExample'
-
-The easiest way to create a new JAR is with "mvn package" from the
-command line.  But You can also add 'Maven Goal' run configurations
-with:
-
-* Eclipse menu 'Run => Debug Configurations'
-  * Add 'Maven Build' configurations with 'Base directory' of '${workspace_loc:/LivePaper}'
-    * add one named 'jar - compile', with goal 'compile'
-    * add one named 'jar - package', with goal 'package'

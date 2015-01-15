@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# source this file to set JAVA_HOME
+
+# have Maven use the Java that is in your path
+if type java_home >/dev/null 2>&1 ; then
+  # maven will use the Java referenced by JAVA_HOME, if set
+  # try to just set it with java_home command
+  export JAVA_HOME=`java_home`2>/dev/null
+else
+  # if java_home command not found, try the location it is on a Mac
+  if type /usr/libexec/java_home >/dev/null 2>&1; then
+    export JAVA_HOME=`/usr/libexec/java_home`
+  fi
+fi
+
+echo JAVA_HOME=$JAVA_HOME
