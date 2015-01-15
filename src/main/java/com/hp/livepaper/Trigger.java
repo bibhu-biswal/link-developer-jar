@@ -27,6 +27,41 @@ public abstract class Trigger extends BaseObject {
   public static String getListKey() {
     return "triggers";
   }
+  private String state = null;
+  public String getState() {
+    return state;
+  }
+  public void setState(String state) {
+    this.state = state;
+  }
+  private String startDate = null;
+  public String getStartDate() {
+    return startDate;
+  }
+  public void setStartDate(String startDate) {
+    this.startDate = startDate;
+  }
+  private String endDate = null;
+  public String getEndDate() {
+    return endDate;
+  }
+  public void setEndDate(String endDate) {
+    this.endDate = endDate;
+  }
+  private String subscriptionStartDate = null;
+  public String getSubscriptionStartDate() {
+    return subscriptionStartDate;
+  }
+  public void setSubscriptionStartDate(String subscriptionStartDate) {
+    this.subscriptionStartDate = subscriptionStartDate;
+  }
+  private String subscriptionExpiryDate = null;
+  public String getSubscriptionExpiryDate() {
+    return subscriptionExpiryDate;
+  }
+  public void setSubscriptionExpiryDate(String subscriptionExpiryDate) {
+    this.subscriptionExpiryDate = subscriptionExpiryDate;
+  }
   protected abstract void validate_attributes();
   @SuppressWarnings("unchecked")
   public static Map<String,Trigger> list() throws LivePaperException {
@@ -37,5 +72,18 @@ public abstract class Trigger extends BaseObject {
       triggers.put(tr.getId(),tr);
     }
     return triggers;
+  }
+  @SuppressWarnings("unchecked")
+  @Override
+  protected void assign_attributes(Map<String, Object> data) {
+    super.assign_attributes(data);
+    setState((String) data.get("state"));
+    setStartDate((String)data.get("startDate"));
+    setEndDate((String)data.get("endDate"));
+    if ( data.get("subscription") != null ) {
+      Map<String, String> subscription = (Map<String, String>)data.get("subscription"); 
+      setSubscriptionStartDate(subscription.get("startDate"));
+      setSubscriptionExpiryDate(subscription.get("expiryDate"));
+    }
   }
 }

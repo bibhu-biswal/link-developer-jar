@@ -1,8 +1,10 @@
 package com.hp.livepaper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.boon.json.JsonFactory;
+import com.hp.livepaper.LivePaperSession.Method;
 
 public class Link extends BaseObject {
   public static final String API_URL = LivePaperSession.LP_API_HOST + "/api/v1/" + "links";
@@ -42,6 +44,9 @@ public class Link extends BaseObject {
     setName(name);
     setTrigger(trigger);
     setPayoff(payoff);
+  }
+  public Link(Map<String, Object> map) {
+    this.assign_attributes(map);
   }
   public static Link create(String name, Trigger trigger, Payoff payoff) throws Exception {
     return (new Link(name, trigger, payoff)).save();
@@ -90,5 +95,15 @@ public class Link extends BaseObject {
   @Override
   protected void assign_attributes(Map<String, Object> data) {
     super.assign_attributes(data);
+  }
+  @SuppressWarnings("unchecked")
+  public static Map<String,Link> list() throws LivePaperException {
+    Map<String,Link> links = new HashMap<String,Link>();
+    Map<String, Object> listOfLinks = LivePaperSession.rest_request(Link.API_URL, Method.GET);
+    for (Map<String, Object> linkData : (List<Map<String, Object>>) listOfLinks.get(getListKey())) {
+      Link tr = new Link(linkData);
+      links.put(tr.getId(),tr);
+    }
+    return links;
   }
 }

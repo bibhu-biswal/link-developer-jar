@@ -53,7 +53,8 @@ public class Image {
             accept("image/jpg").
             get(ClientResponse.class);
         return LivePaperSession.inputStreamToByteArray(imgResponse.getEntityInputStream());
-      } catch ( IOException e ) {
+      }
+      catch (IOException | ClientHandlerException e ) {
         tries++;
         if (tries > maxTries)
           throw new LivePaperException("Unable to obtain image to be watermarked! (from "+imageUrl+")", e);

@@ -1,8 +1,10 @@
 package com.hp.livepaper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.boon.json.JsonFactory;
+import com.hp.livepaper.LivePaperSession.Method;
 
 public class Payoff extends BaseObject {
   public static final String API_URL = LivePaperSession.LP_API_HOST + "/api/v1/" + "payoffs";
@@ -36,6 +38,9 @@ public class Payoff extends BaseObject {
     setName(name);
     setType(type);
     setUrl(url);
+  }
+  public Payoff(Map<String, Object> map) {
+    this.assign_attributes(map);
   }
   public static Payoff create(String name, Type type, String url) throws Exception {
     return (new Payoff(name, type, url)).save();
@@ -102,5 +107,15 @@ public class Payoff extends BaseObject {
   protected void assign_attributes(Map<String, Object> data) {
     super.assign_attributes(data);
     setUrl((String) data.get("URL"));
+  }
+  @SuppressWarnings("unchecked")
+  public static Map<String,Payoff> list() throws LivePaperException {
+    Map<String,Payoff> payoffs = new HashMap<String,Payoff>();
+    Map<String, Object> listOfPayoffs = LivePaperSession.rest_request(Payoff.API_URL, Method.GET);
+    for (Map<String, Object> payoffData : (List<Map<String, Object>>) listOfPayoffs.get(getListKey())) {
+      Payoff tr = new Payoff(payoffData);
+      payoffs.put(tr.getId(),tr);
+    }
+    return payoffs;
   }
 }

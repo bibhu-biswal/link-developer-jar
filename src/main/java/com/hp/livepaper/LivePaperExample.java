@@ -29,12 +29,32 @@ public class LivePaperExample {
       if (true) {
         System.out.println("Authenticating with LivePaperSession...");
         LivePaperSession.setLppBasicAuth(id, secret);
+        System.out.println();
+
         System.out.println("Getting List of Trigger objects...");
         Map<String, Trigger> triggers = Trigger.list();
         System.out.println("  Found " + triggers.keySet().size() + " triggers!");
         for (String triggerId : triggers.keySet()) {
           Trigger tr = triggers.get(triggerId);
-          System.out.println("    " + tr.getName() + " [" + tr.getClass().getName() + "]");
+          System.out.println("    \"" + tr.getName() + "\" [" + tr.getClass().getName() + "]");
+        }
+        System.out.println();
+
+        System.out.println("Getting List of Payoff objects...");
+        Map<String, Payoff> payoffs = Payoff.list();
+        System.out.println("  Found " + payoffs.keySet().size() + " payoffs!");
+        for (String payoffId : payoffs.keySet()) {
+          Payoff po = payoffs.get(payoffId);
+          System.out.println("    \"" + po.getName() + "\"");
+        }
+        System.out.println();
+
+        System.out.println("Getting List of Link objects...");
+        Map<String, Link> links = Link.list();
+        System.out.println("  Found " + links.keySet().size() + " links!");
+        for (String linkId : links.keySet()) {
+          Link ln = links.get(linkId);
+          System.out.println("    \"" + ln.getName() + "\"");
         }
         System.out.println();
 
@@ -114,8 +134,8 @@ public class LivePaperExample {
         System.out.println("    Links:");
         for (String item : ln0.getLinks().keySet())
           System.out.println("      " + item + ": " + ln0.getLinks().get(item));
-        System.out.println("  Downloading QR code...");
-        byte[] qrbytes = qr0.downloadQrCode();
+        System.out.println("  Downloading QR code...(at size of 250px)");
+        byte[] qrbytes = qr0.downloadQrCode(250);
         String img_out = "image_qr_code_" + sdf.format(Calendar.getInstance().getTime()) + ".png";
         FileOutputStream fos0 = new FileOutputStream(img_out);
         fos0.write(qrbytes);

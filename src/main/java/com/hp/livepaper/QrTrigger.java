@@ -70,7 +70,24 @@ public class QrTrigger extends Trigger {
       }*/
   //@formatter:on
   }
+  /**
+   * Download the QR Code image (at the API's default image size) 
+   * @return byte array holding the contents of the image ready to be saved to disk, or displayed, etc.
+   * @throws LivePaperException
+   */
   public byte[] downloadQrCode() throws LivePaperException {
-    return LivePaperSession.getImageBytes("image/png", this.getLinks().get("image") + "?width=200");
+    return downloadQrCode(0);
+  }
+  /**
+   * Download the QR Code image, at a specific size 
+   * @param width must be greater than zero.  Any other integer value will be ignored (and API's default size will be used).
+   * @return byte array holding the contents of the image ready to be saved to disk, or displayed, etc.
+   * @throws LivePaperException
+   */
+  public byte[] downloadQrCode(int width) throws LivePaperException {
+    String params = "";
+    if ( width > 0 )
+      params="?width="+width;
+    return LivePaperSession.getImageBytes("image/png", this.getLinks().get("image") + params);
   }
 }

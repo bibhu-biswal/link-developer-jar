@@ -25,7 +25,6 @@ import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
-@SuppressWarnings("restriction")
 public class LivePaperSession {
   protected static final String LP_API_HOST = "https://www.livepaperapi.com";
   public enum Method {
@@ -154,15 +153,30 @@ public class LivePaperSession {
     return bos.toByteArray();
   }
   public static byte[] getImageBytes(String imageType, String imageUrl) throws LivePaperException {
-    ClientResponse response = LivePaperSession.createWebResource(imageUrl).
-        accept(imageType).
-        header("Authorization", LivePaperSession.getLppAccessToken()).
-        get(ClientResponse.class);
-    try {
-      return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
-    }
-    catch (IOException e) {
-      throw new com.hp.livepaper.LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
+    int maxTries = LivePaperSession.getNetworkErrorRetryCount();
+    int tries = 0;
+    while (true) {
+      try {
+        ClientResponse response = LivePaperSession.createWebResource(imageUrl).
+            accept(imageType).
+            header("Authorization", LivePaperSession.getLppAccessToken()).
+            get(ClientResponse.class);
+        return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
+      }
+      catch (IOException e) {
+        tries++;
+        if (tries > maxTries)
+          throw new LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
+        System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
+        System.err.println("  (error was \"" + e.getMessage() + "\")");
+        try {
+          Thread.sleep(LivePaperSession.getRetrySleepPeriod());
+        }
+        catch (InterruptedException e1) {
+          throw new LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
+        }
+        continue;
+      }
     }
   }
   public static Map<String, Object> rest_request(String url, Method method) throws LivePaperException {

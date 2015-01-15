@@ -22,13 +22,6 @@ public abstract class BaseObject {
   public void setName(String name) {
     this.name = name;
   }
-  private String state = null;
-  public String getState() {
-    return state;
-  }
-  public void setState(String state) {
-    this.state = state;
-  }
   private String date_created = null;
   public String getDateCreated() {
     return date_created;
@@ -42,34 +35,6 @@ public abstract class BaseObject {
   }
   protected void setDateModified(String date_modified) {
     this.date_modified = date_modified;
-  }
-  private String startDate = null;
-  public String getStartDate() {
-    return startDate;
-  }
-  public void setStartDate(String startDate) {
-    this.startDate = startDate;
-  }
-  private String endDate = null;
-  public String getEndDate() {
-    return endDate;
-  }
-  public void setEndDate(String endDate) {
-    this.endDate = endDate;
-  }
-  private String subscriptionStartDate = null;
-  public String getSubscriptionStartDate() {
-    return subscriptionStartDate;
-  }
-  public void setSubscriptionStartDate(String subscriptionStartDate) {
-    this.subscriptionStartDate = subscriptionStartDate;
-  }
-  private String subscriptionExpiryDate = null;
-  public String getSubscriptionExpiryDate() {
-    return subscriptionExpiryDate;
-  }
-  public void setSubscriptionExpiryDate(String subscriptionExpiryDate) {
-    this.subscriptionExpiryDate = subscriptionExpiryDate;
   }
   private Map<String, String> links = new HashMap<String, String>();
   public Map<String, String> getLinks() {
@@ -93,17 +58,9 @@ public abstract class BaseObject {
   protected void assign_attributes(Map<String, Object> map) {
     setId((String) map.get("id"));
     setName((String) map.get("name"));
-    setState((String) map.get("state"));
     setDateCreated((String) map.get("dateCreated"));
     setDateModified((String) map.get("dateModified"));
     for (Map<String, String> list : (List<Map<String, String>>) map.get("link"))
       getLinks().put(list.get("rel"), list.get("href"));
-    setStartDate((String)map.get("startDate"));
-    setEndDate((String)map.get("endDate"));
-    if ( map.get("subscription") != null ) {
-      Map<String, String> subscription = (Map<String, String>)map.get("subscription"); 
-      setSubscriptionStartDate(subscription.get("startDate"));
-      setSubscriptionExpiryDate(subscription.get("expiryDate"));
-    }
   }
 }
