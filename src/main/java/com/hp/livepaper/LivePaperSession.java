@@ -3,11 +3,13 @@ package com.hp.livepaper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -26,19 +28,21 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 public class LivePaperSession {
-  protected static final String LP_API_HOST = "https://www.livepaperapi.com";
   public enum Method {
-    GET, POST, PUT, DELETE;
+    GET, POST, DELETE, UPDATE;
   }
-  private static String lpp_access_token                 = null; // TODO: these statics are not thread-safe!
-  private static String lpp_basic_auth                   = null;
-  private static int    network_error_retry_sleep_period = 3000;
-  public static void setNetworkErrorRetrySleepPeriod(int sleepPeriodInMilliseconds) {
+  public static LivePaperSession create(String clientID, String secret) {
+    return new LivePaperSession(clientID, secret);
+  }
+  private String lpp_access_token = "";
+  private String lpp_basic_auth   = "";
+  private static int network_error_retry_sleep_period = 3000;
+  public  static void setNetworkErrorRetrySleepPeriod(int sleepPeriodInMilliseconds) {
     network_error_retry_sleep_period = sleepPeriodInMilliseconds;
     if (network_error_retry_sleep_period < 0)
       network_error_retry_sleep_period = 1000;
   }
-  public static int getRetrySleepPeriod() {
+  public  static int getNetworkErrorRetrySleepPeriod() {
     return network_error_retry_sleep_period;
   }
   private static int network_error_retry_count = 5;
@@ -50,15 +54,15 @@ public class LivePaperSession {
   public static int getNetworkErrorRetryCount() {
     return network_error_retry_count;
   }
-  public static String getLppAccessToken() {
+  public String getLppAccessToken() {
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
       try {
-        if (lpp_access_token != null && lpp_access_token.length() > 0)
+        if (lpp_access_token.length() > 0)
           return lpp_access_token;
         String body = "grant_type=client_credentials&scope=all";
-        Builder webResource = createWebResource(LP_API_HOST + "/auth/v1/token");
+        Builder webResource = createWebResource(LivePaper.API_HOST_AUTH);
         ClientResponse response = webResource.
             header("Content-Type", "application/x-www-form-urlencoded").
             accept("application/json").
@@ -85,7 +89,7 @@ public class LivePaperSession {
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
-          Thread.sleep(LivePaperSession.getRetrySleepPeriod());
+          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException unused) {
           throw e;
@@ -94,18 +98,18 @@ public class LivePaperSession {
       }
     }
   }
-  public static void resetLppAccessToken() {
-    LivePaperSession.lpp_access_token = null;
+  public void resetLppAccessToken() {
+    lpp_access_token = "";
   }
-  public static String getLppBasicAuth() {
-    return LivePaperSession.lpp_basic_auth;
+  public String getLppBasicAuth() {
+    return lpp_basic_auth;
   }
-  public static void setLppBasicAuth(String clientID, String secret) throws UnsupportedEncodingException {
+  private LivePaperSession(String clientID, String secret) {
     if (clientID == null || secret == null)
-      throw new NullPointerException("Null arguments not accepted.");
+      throw new IllegalArgumentException("Null arguments not accepted.");
     if (clientID.length() == 0 || secret.length() == 0)
-      throw new NullPointerException("Blank arguments not accepted.");
-    LivePaperSession.lpp_basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes("UTF-8"));
+      throw new IllegalArgumentException("Blank arguments not accepted.");
+    lpp_basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(StandardCharsets.UTF_8));
   }
   public static Builder createWebResource(String location) {
     return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v" + Version.VERSION);
@@ -121,14 +125,18 @@ public class LivePaperSession {
     // Create a trust manager that does not validate certificate chains
     TrustManager[] trustAllCerts = new TrustManager[] {
         new X509TrustManager() {
+          @Override
           public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[0];
           }
+          @Override
           public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+          @Override
           public void checkServerTrusted(X509Certificate[] certs, String authType) {}
         } };
     // Ignore differences between given hostname and certificate hostname
     HostnameVerifier hv = new HostnameVerifier() {
+      @Override
       public boolean verify(String hostname, SSLSession session) {
         return true;
       }
@@ -152,14 +160,14 @@ public class LivePaperSession {
     bos.flush();
     return bos.toByteArray();
   }
-  public static byte[] getImageBytes(String imageType, String imageUrl) throws LivePaperException {
+  public byte[] getImageBytes(String imageType, String imageUrl) throws LivePaperException {
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
       try {
         ClientResponse response = LivePaperSession.createWebResource(imageUrl).
             accept(imageType).
-            header("Authorization", LivePaperSession.getLppAccessToken()).
+            header("Authorization", getLppAccessToken()).
             get(ClientResponse.class);
         return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
       }
@@ -170,7 +178,7 @@ public class LivePaperSession {
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
-          Thread.sleep(LivePaperSession.getRetrySleepPeriod());
+          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException e1) {
           throw new LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
@@ -179,10 +187,11 @@ public class LivePaperSession {
       }
     }
   }
-  public static Map<String, Object> rest_request(String url, Method method) throws LivePaperException {
+  public Map<String, Object> rest_request(String url, Method method) throws LivePaperException {
     return rest_request(url, method, new HashMap<String, Object>());
   }
-  public static Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
+  @SuppressWarnings("unchecked")
+  public Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
     // TODO: support "x_user_info: app=live_paper_jar" (so that API can track the source of the API calls)
     int responseCode = -1;
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
@@ -194,19 +203,30 @@ public class LivePaperSession {
     ClientResponse response = null;
     while (true) {
       try {
-        if (method == Method.POST) {
-          response = webResource.
-              header("Content-Type", "application/json").
-              accept("application/json").
-              header("Authorization", LivePaperSession.getLppAccessToken()).
-              post(ClientResponse.class, body);
-        }
-        if (method == Method.GET) {
-          response = webResource.
-              header("Content-Type", "application/json").
-              accept("application/json").
-              header("Authorization", LivePaperSession.getLppAccessToken()).
-              get(ClientResponse.class);
+        switch (method) {
+          case GET:
+            response = webResource.
+            header("Content-Type", "application/json").
+            accept("application/json").
+            header("Authorization", getLppAccessToken()).
+            get(ClientResponse.class);
+            break;
+          case POST:
+            response = webResource.
+            header("Content-Type", "application/json").
+            accept("application/json").
+            header("Authorization", getLppAccessToken()).
+            post(ClientResponse.class, body);
+            break;
+          case DELETE:
+            response = webResource.
+            header("Content-Type", "application/json").
+            accept("application/json").
+            header("Authorization", getLppAccessToken()).
+            delete(ClientResponse.class, body);
+            break;
+          case UPDATE:
+            throw new IllegalStateException("UPDATE has not been handled yet!");
         }
         responseCode = response.getStatus();
         if (responseCode == 401) { // authentication problem
@@ -224,7 +244,7 @@ public class LivePaperSession {
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
-          Thread.sleep(LivePaperSession.getRetrySleepPeriod());
+          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException e1) {
           throw e;
@@ -232,17 +252,77 @@ public class LivePaperSession {
         continue;
       }
     }
-    switch (responseCode) {
-      case 200: // GET  (object lists)    returns 200 when OK
-      case 201: // POST (object creation) returns 201 when OK
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseMap = (Map<String, Object>)mapper.readValue(response.getEntity(String.class), Map.class);
-        return responseMap;
-      default:
-        throw new LivePaperException(""+responseCode+": "+response.getEntity(String.class));
-//      System.out.println(responseCode);
-//      System.out.println(response.getEntity(String.class));
-//      return null;
+    switch (method) {
+      case GET:
+        if (responseCode == 200) // 200: list/get object
+          return mapper.readValue(response.getEntity(String.class), Map.class);
+        // 404: fail to list/get non-existent object
+        break;
+      case POST:
+        if (responseCode == 201) // 201: created new object
+          return mapper.readValue(response.getEntity(String.class), Map.class);
+        break;
+      case DELETE:
+        if (responseCode == 204)
+          return null;
+        if (responseCode == 200) // 200: delete object
+          return null;
+        break;
+      case UPDATE:
+        throw new IllegalStateException("UPDATE has not been handled yet!");
     }
+    String message = htmlStripToH1(response.getEntity(String.class));
+    throw new LivePaperException(responseCode + ": " + message + " (" + method + " " + url + ")");
+  }
+  private final static Pattern htmlEncodedRestMessagePattern = Pattern.compile("(^.*<h1>)(.*)(</h1>.*$)");
+  /**
+   * LivePaper REST API calls sometimes return HTML with the important message strored in the H1 tag.
+   * @param possibleHtmlEncodedRestMessage the Rest error message that is possibly encoded in html.
+   * @return the original string if not encoded; the contents of the H1 tag if encoded
+   */
+  private static String htmlStripToH1(String possibleHtmlEncodedRestMessage) {
+    Matcher m = htmlEncodedRestMessagePattern.matcher(possibleHtmlEncodedRestMessage);
+    if (m.find())
+      return m.group(2);
+    return possibleHtmlEncodedRestMessage;
+  }
+  public static String capitalize(String line) {
+    return Character.toUpperCase(line.charAt(0)) + line.substring(1);
+  }
+  /**
+   * Shortens the url passed as the argument.
+   * @param longURL The URL that needs to be shortened.
+   * @return The shortened URL or null if passed string is null, or if access is unauthorized, or in case of server error.
+   */
+  public String createShortUrl(String name, String url) throws LivePaperException {
+    ShortTrigger tr = ShortTrigger.create(this, name);
+    Payoff       po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
+    Link.create(this, name, tr, po);
+    return tr.getShortUrl();
+  }
+  /**
+   * Returns a byte representation of the QR code that encodes the passed URL.
+   * @param url The URL that needs to be QR-coded.
+   * @return The byte representation of the QR code or null if passed string is null, or if access is unauthorized, or in case of server error.
+   */
+  public byte[] createQrCode(String name, String url, int width) throws LivePaperException {
+    QrTrigger tr = QrTrigger.create(this, name);
+    Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
+    Link.create(this, name, tr, po);
+    return    tr.downloadQrCode(width);
+  }
+  /**
+   * Returns a byte representation of the watermarked image that encodes the passed URL.
+   * @param imageLoc The the URL where the image is hosted
+   * @param url The URL that needs to be encoded in the image
+   * @return The byte representation of the watermarked image or null if passed string is null, or if access is unauthorized, or in case of server error.
+   * @throws LivePaperException
+   */
+  public byte[] createWatermarkedImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked, String imageUrlForPayoff) throws LivePaperException {
+    String    stored_image_url = Image.upload(this, urlForImageToBeWatermarked);
+    WmTrigger tr = WmTrigger.create(this, name, strength, resolution, stored_image_url);
+    Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
+    Link.create(this, name, tr, po);
+    return tr.downloadWatermarkedImage();
   }
 }

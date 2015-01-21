@@ -6,15 +6,18 @@ import org.boon.json.JsonFactory;
 
 public class QrTrigger extends Trigger {
   private static String DEFAULT_SUBSCRIPTION = "month";
-  public QrTrigger(String name) {
+  public QrTrigger(LivePaperSession lp, String name) {
+    this.lp = lp;
     this.setName(name);
   }
-  public QrTrigger(Map<String, Object> map) {
+  public QrTrigger(LivePaperSession lp, Map<String, Object> map) {
+    this.lp = lp;
     this.assign_attributes(map);
   }
-  public static QrTrigger create(String name) throws Exception {
-    return (new QrTrigger(name)).save();
+  public static QrTrigger create(LivePaperSession lp, String name) throws LivePaperException {
+    return (new QrTrigger(lp, name)).save();
   }
+  @Override
   public QrTrigger save() throws LivePaperException {
     return (QrTrigger) super.save();
   }
@@ -68,10 +71,10 @@ public class QrTrigger extends Trigger {
          expiryDate=2017-01-08T01:38:18.001+0000,
          startDate=2015-01-07T19:49:32.001+0000}
       }*/
-  //@formatter:on
+    //@formatter:on
   }
   /**
-   * Download the QR Code image (at the API's default image size) 
+   * Download the QR Code image (at the API's default image size)
    * @return byte array holding the contents of the image ready to be saved to disk, or displayed, etc.
    * @throws LivePaperException
    */
@@ -79,15 +82,15 @@ public class QrTrigger extends Trigger {
     return downloadQrCode(0);
   }
   /**
-   * Download the QR Code image, at a specific size 
-   * @param width must be greater than zero.  Any other integer value will be ignored (and API's default size will be used).
+   * Download the QR Code image, at a specific size
+   * @param width must be greater than zero. Any other integer value will be ignored (and API's default size will be used).
    * @return byte array holding the contents of the image ready to be saved to disk, or displayed, etc.
    * @throws LivePaperException
    */
   public byte[] downloadQrCode(int width) throws LivePaperException {
     String params = "";
-    if ( width > 0 )
-      params="?width="+width;
-    return LivePaperSession.getImageBytes("image/png", this.getLinks().get("image") + params);
+    if (width > 0)
+      params = "?width=" + width;
+    return lp.getImageBytes("image/png", this.getLinks().get("image") + params);
   }
 }

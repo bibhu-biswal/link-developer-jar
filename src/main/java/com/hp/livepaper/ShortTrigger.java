@@ -9,15 +9,18 @@ public class ShortTrigger extends Trigger {
   public String getShortUrl() {
     return getLinks().get("shortURL");
   }
-  public ShortTrigger(String name) {
+  public ShortTrigger(LivePaperSession lp, String name) {
+    this.lp = lp;
     this.setName(name);
   }
-  public ShortTrigger(Map<String, Object> map) {
+  public ShortTrigger(LivePaperSession lp, Map<String, Object> map) {
+    this.lp = lp;
     this.assign_attributes(map);
   }
-  public static ShortTrigger create(String name) throws Exception {
-    return (new ShortTrigger(name)).save();
+  public static ShortTrigger create(LivePaperSession lp, String name) throws LivePaperException {
+    return (new ShortTrigger(lp, name)).save();
   }
+  @Override
   public ShortTrigger save() throws LivePaperException {
     return (ShortTrigger) super.save();
   }

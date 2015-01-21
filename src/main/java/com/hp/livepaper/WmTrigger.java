@@ -6,21 +6,24 @@ import org.boon.json.JsonFactory;
 
 public class WmTrigger extends Trigger {
   private static String DEFAULT_SUBSCRIPTION = "month";
-  private Strength   strength   = null;
-  private Resolution resolution = null;
-  private String     imageUrl   = null;
-  public WmTrigger(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) {
+  private Strength      strength             = null;
+  private Resolution    resolution           = null;
+  private String        imageUrl             = "";
+  public WmTrigger(LivePaperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) {
+    this.lp = lp;
     this.setName(name);
     this.setImageUrl(imageUrl);
     this.setStrength(strength);
     this.setResolution(resolution);
   }
-  public WmTrigger(Map<String, Object> map) {
+  public WmTrigger(LivePaperSession lp, Map<String, Object> map) {
+    this.lp = lp;
     this.assign_attributes(map);
   }
-  public static WmTrigger create(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) throws Exception {
-    return (new WmTrigger(name, strength, resolution, imageUrl)).save();
+  public static WmTrigger create(LivePaperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked) throws LivePaperException {
+    return (new WmTrigger(lp, name, strength, resolution, urlForImageToBeWatermarked)).save();
   }
+  @Override
   public WmTrigger save() throws LivePaperException {
     return (WmTrigger) super.save();
   }
@@ -33,19 +36,19 @@ public class WmTrigger extends Trigger {
   }
   @Override
   protected void validate_attributes() {
-    if (getName() == null)
+    if (getName().length() == 0)
       throw new IllegalArgumentException("Invalid state for this operation! (missing attribute: name)");
   }
   @Override
   protected Map<String, Object> create_body() {
-    Map<String, Object> body         = new HashMap<String, Object>();
-    Map<String, Object> trigger      = new HashMap<String, Object>();
-    Map<String, Object> watermark    = new HashMap<String, Object>();
+    Map<String, Object> body = new HashMap<String, Object>();
+    Map<String, Object> trigger = new HashMap<String, Object>();
+    Map<String, Object> watermark = new HashMap<String, Object>();
     Map<String, Object> subscription = new HashMap<String, Object>();
     subscription.put("package", DEFAULT_SUBSCRIPTION);
     watermark.put("outputImageFormat", "JPEG");
-    watermark.put("resolution", ""+this.resolution.getResolution());
-    watermark.put("strength", ""+this.strength.getStrength());
+    watermark.put("resolution", "" + this.resolution.getResolution());
+    watermark.put("strength", "" + this.strength.getStrength());
     watermark.put("imageURL", imageUrl);
     trigger.put("name", getName());
     trigger.put("watermark", watermark);
@@ -59,11 +62,11 @@ public class WmTrigger extends Trigger {
   protected void assign_attributes(Map<String, Object> map) {
     super.assign_attributes(map);
     @SuppressWarnings("unchecked")
-    Map<String, Object> watermark = (Map<String, Object>)map.get("watermark");
-    if ( watermark != null ) {
-      setImageUrl((String)watermark.get("imageURL"));
-      resolution = new Resolution((Integer)watermark.get("resolution"));
-      strength   = new Strength((Integer)watermark.get("strength"));
+    Map<String, Object> watermark = (Map<String, Object>) map.get("watermark");
+    if (watermark != null) {
+      setImageUrl((String) watermark.get("imageURL"));
+      resolution = new Resolution((Integer) watermark.get("resolution"));
+      strength = new Strength((Integer) watermark.get("strength"));
     }
     //@formatter:off
     /*{
@@ -93,13 +96,13 @@ public class WmTrigger extends Trigger {
     //@formatter:on
   }
   public byte[] downloadWatermarkedImage() throws LivePaperException {
-    return LivePaperSession.getImageBytes("image/jpeg",this.getLinks().get("image"));
+    return lp.getImageBytes("image/jpeg", this.getLinks().get("image"));
   }
   public Strength getStrength() {
     return strength;
   }
   public void setStrength(Strength strength) {
-    if ( strength == null )
+    if (strength == null)
       throw new IllegalArgumentException("Strength cannot be null.");
     this.strength = strength;
   }
@@ -107,7 +110,7 @@ public class WmTrigger extends Trigger {
     return resolution;
   }
   public void setResolution(Resolution resolution) {
-    if ( resolution == null )
+    if (resolution == null)
       throw new IllegalArgumentException("Resolution cannot be null.");
     this.resolution = resolution;
   }
@@ -118,13 +121,13 @@ public class WmTrigger extends Trigger {
     this.imageUrl = imageUrl;
   }
   public static class Resolution {
-    private int resolution = 0;
+    private int             resolution     = 0;
     public static final int MIN_RESOLUTION = 1;
     public static final int MAX_RESOLUTION = 2400;
     public Resolution(int resolution) {
-      if ( resolution < MIN_RESOLUTION || resolution > MAX_RESOLUTION )
+      if (resolution < MIN_RESOLUTION || resolution > MAX_RESOLUTION)
         throw new IllegalArgumentException(
-              "Resolution must be a positive integer ranging from "+Resolution.MIN_RESOLUTION+" to "+Resolution.MAX_RESOLUTION+".");
+            "Resolution must be a positive integer ranging from " + Resolution.MIN_RESOLUTION + " to " + Resolution.MAX_RESOLUTION + ".");
       this.resolution = resolution;
     }
     public Resolution(Integer resolution) {
@@ -138,17 +141,17 @@ public class WmTrigger extends Trigger {
     }
     @Override
     public String toString() {
-      return ""+resolution;      
+      return "" + resolution;
     }
   }
   public static class Strength {
-    private int strength = 0;
+    private int             strength     = 0;
     public static final int MIN_STRENGTH = 1;
     public static final int MAX_STRENGTH = 10;
     public Strength(int strength) {
-      if ( strength < MIN_STRENGTH || strength > MAX_STRENGTH )
+      if (strength < MIN_STRENGTH || strength > MAX_STRENGTH)
         throw new IllegalArgumentException(
-            "Strength must be a positive integer ranging from "+Strength.MIN_STRENGTH+" to "+Strength.MAX_STRENGTH+".");
+            "Strength must be a positive integer ranging from " + Strength.MIN_STRENGTH + " to " + Strength.MAX_STRENGTH + ".");
       this.strength = strength;
     }
     public Strength(Integer strength) {
@@ -162,7 +165,7 @@ public class WmTrigger extends Trigger {
     }
     @Override
     public String toString() {
-      return ""+strength;      
+      return "" + strength;
     }
   }
 }

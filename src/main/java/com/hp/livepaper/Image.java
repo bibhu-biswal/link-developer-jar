@@ -6,23 +6,22 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource.Builder;
 
 public class Image {
-  public static final String STORAGE_API_HOST = "https://storage.livepaperapi.com/objects/v1/files";
   private Image() {}
-  public static String upload(String imageUrl) throws LivePaperException {
-    if ( imageUrl == null || imageUrl.length() == 0 )
+  public static String upload(LivePaperSession lp, String imageUrl) throws LivePaperException {
+    if (imageUrl == null || imageUrl.length() == 0)
       throw new java.lang.IllegalArgumentException("image_url cannot be null or blank");
     // return the original img uri if it is LivePaper storage
-    if ( imageUrl.contains(STORAGE_API_HOST) )
+    if (imageUrl.contains(LivePaper.API_HOST_STORAGE))
       return imageUrl;
     byte[] bytes = obtainImageBytes(imageUrl);
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
-    while ( true ) {
+    while (true) {
       try {
-        Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(STORAGE_API_HOST);
+        Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(LivePaper.API_HOST_STORAGE);
         ClientResponse response = webResource.
             header("Content-Type", "image/jpg").
-            header("Authorization", com.hp.livepaper.LivePaperSession.getLppAccessToken()).
+            header("Authorization", lp.getLppAccessToken()).
             post(ClientResponse.class, bytes);
         return response.getHeaders().getFirst("location");
       }
@@ -30,10 +29,10 @@ public class Image {
         tries++;
         if (tries > maxTries)
           throw new LivePaperException("Failed to upload the image to be watermarked to the storage service!", e);
-        System.err.println("Warning: Network error! retrying (" + tries + " of "+maxTries+")...");
+        System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
-          Thread.sleep(LivePaperSession.getRetrySleepPeriod());
+          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException unused) {
           throw new LivePaperException("Failed to upload the image to be watermarked to the storage service!", e);
@@ -45,26 +44,26 @@ public class Image {
   private static byte[] obtainImageBytes(String imageUrl) throws LivePaperException {
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
-    while ( true ) {
+    while (true) {
       try {
         Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(imageUrl);
         ClientResponse imgResponse = null;
-        imgResponse =  webResource.
+        imgResponse = webResource.
             accept("image/jpg").
             get(ClientResponse.class);
         return LivePaperSession.inputStreamToByteArray(imgResponse.getEntityInputStream());
       }
-      catch (IOException | ClientHandlerException e ) {
+      catch (IOException | ClientHandlerException e) {
         tries++;
         if (tries > maxTries)
-          throw new LivePaperException("Unable to obtain image to be watermarked! (from "+imageUrl+")", e);
-        System.err.println("Warning: Network error! retrying (" + tries + " of "+maxTries+")...");
+          throw new LivePaperException("Unable to obtain image to be watermarked! (from " + imageUrl + ")", e);
+        System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
-          Thread.sleep(LivePaperSession.getRetrySleepPeriod());
+          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException unused) {
-          throw new LivePaperException("Unable to obtain image to be watermarked! (from "+imageUrl+")", e);
+          throw new LivePaperException("Unable to obtain image to be watermarked! (from " + imageUrl + ")", e);
         }
         continue;
       }
