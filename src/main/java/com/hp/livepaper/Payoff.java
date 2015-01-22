@@ -86,6 +86,10 @@ public class Payoff extends BaseObject {
     }
   }
   @Override
+  protected Map<String, Object> update_body() {
+    return create_body();
+  }
+  @Override
   protected Map<String, Object> create_body() {
     Map<String, Object> payoff = new HashMap<String, Object>();
     switch (getType()) {

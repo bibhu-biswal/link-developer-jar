@@ -146,6 +146,16 @@ public class Link extends BaseObject {
     return body;
   }
   @Override
+  protected Map<String, Object> update_body() {
+    Map<String, Object> linkContent = new HashMap<String, Object>();
+    linkContent.put("name", trigger.getName());
+    Map<String, Object> body = new HashMap<String, Object>();
+    body.put("link", linkContent);
+    @SuppressWarnings("unused")
+    String bodytxt = JsonFactory.create().writeValueAsString(body);
+    return body;
+  }
+  @Override
   protected void assign_attributes(Map<String, Object> data) {
     super.assign_attributes(data);
     setTriggerId((String) data.get("triggerId"));

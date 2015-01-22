@@ -29,9 +29,13 @@ public class LivePaperExample {
       if (true) {
         System.out.println("Authenticating with LivePaperSession...");
         LivePaperSession lp = LivePaperSession.create(id, secret);
-        
         System.out.println();
-        {
+        boolean testShortUrl  = true;
+        boolean testQrCode    = true;
+        boolean testWatermark = true;
+        boolean testDelete    = true;
+        boolean testLists     = true;
+        if ( testDelete ) {
           System.out.println("Initializing New Trigger...");
           Trigger tr = new ShortTrigger(lp, "some name");
           System.out.println("  Delete attempt should fail...");
@@ -51,7 +55,7 @@ public class LivePaperExample {
           tr.delete();
           System.out.println("    deleted ok.");
         }
-        {
+        if ( testShortUrl ) {
           System.out.println("Creating Short URL...");
           System.out.println("  ShortTrigger.create()...");
           ShortTrigger tr = ShortTrigger.create(lp, "My ShortTrigger");
@@ -84,11 +88,25 @@ public class LivePaperExample {
           for (String item : ln.getLinks().keySet())
             System.out.println("      " + item + ": " + ln.getLinks().get(item));
           System.out.println("  Done creating Short URL");
+          System.out.println("  Updating Short URL");
+          System.out.println("    ShortTrigger.setName()...");
+          tr.setName(tr.getName()+" (renamed)");
+          System.out.println("    ShortTrigger.update()...");
+          tr.update();
+          System.out.println("    Payoff.setName()...");
+          po.setName(po.getName()+" (renamed)");
+          System.out.println("    Payoff.update()...");
+          po.update();
+          System.out.println("    Link.setName()...");
+          ln.setName(ln.getName()+" (renamed)");
+          System.out.println("    Link.update()...");
+          ln.update();
           System.out.println("  Deleting Link...");
           String ID = ln.getId();
           ln.delete();
           ln = null;
           try {
+            System.out.println("  Testing Link.get() on deleted object id...");
             // should not be able to get the deleted object now
             ln = Link.get(lp, ID);
           }
@@ -107,7 +125,7 @@ public class LivePaperExample {
           tr = null;
           System.out.println();
         }
-        {
+        if ( testQrCode ) {
           System.out.println("Creating QR Code...");
           System.out.println("  QrTrigger.create()...");
           QrTrigger tr = QrTrigger.create(lp, "My QrTrigger");
@@ -157,11 +175,11 @@ public class LivePaperExample {
           tr = null;
           System.out.println();
         }
-        {
+        if (testWatermark) {
           System.out.println("Creating Watermarked Image...");
           String urlOfImageToBeWatermarked = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
           System.out.println("  Image.upload()...");
-          String uploaded_image_url = Image.upload(lp, urlOfImageToBeWatermarked);
+          String uploaded_image_url = ImageStorageService.upload(lp,urlOfImageToBeWatermarked);
           System.out.println("    uploaded image: " + uploaded_image_url);
           System.out.println("  WmTrigger.create()...");
           WmTrigger tr = WmTrigger.create(lp, "My WmTrigger", new WmTrigger.Strength(10), new WmTrigger.Resolution(75), uploaded_image_url);
@@ -214,7 +232,7 @@ public class LivePaperExample {
           tr = null;
           System.out.println();
         }
-        {
+        if ( testLists ) {
           System.out.println("Getting List of Trigger objects...");
           Map<String, Trigger> triggers = Trigger.list(lp);
           System.out.println("  Found " + triggers.keySet().size() + " triggers!");
@@ -223,8 +241,6 @@ public class LivePaperExample {
             System.out.println("    \"" + tr.getName() + "\" [" + tr.getClass().getName() + "]");
           }
           System.out.println();
-        }
-        {
           System.out.println("Getting List of Payoff objects...");
           Map<String, Payoff> payoffs = Payoff.list(lp);
           System.out.println("  Found " + payoffs.keySet().size() + " payoffs!");
@@ -233,8 +249,6 @@ public class LivePaperExample {
             System.out.println("    \"" + po.getName() + "\"");
           }
           System.out.println();
-        }
-        {
           System.out.println("Getting List of Link objects...");
           Map<String, Link> links = Link.list(lp);
           System.out.println("  Found " + links.keySet().size() + " links!");

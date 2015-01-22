@@ -7,7 +7,8 @@ watermarked images, QR codes, and mobile-friendly shortened URLs.
 
 This git repo contains the source for the LivePaper JAR.  You can
 build the JAR with "mvn package".  Maven is configured (in pom.xml) to
-use Java 1.8 and will complain if it cannot find it.  You can use the
+use Java 1.8 and you will get an error "invalid target release: 1.8"
+if maven cannot find Java 1.8.  To fix that problem, you can use the
 JAVA_HOME variable to tell Maven where your Java 1.8 is installed (see
 script/create_jar_with_maven.sh and script/set_JAVA_HOME).
 

@@ -21,15 +21,16 @@ import javax.xml.bind.DatatypeConverter;
 import org.boon.json.JsonFactory;
 import org.boon.json.ObjectMapper;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
-import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 public class LivePaperSession {
   public enum Method {
-    GET, POST, DELETE, UPDATE;
+    GET, PUT, POST, DELETE;
   }
   public static LivePaperSession create(String clientID, String secret) {
     return new LivePaperSession(clientID, secret);
@@ -82,9 +83,8 @@ public class LivePaperSession {
           // throw response.getEntity(String.class)
         }
       }
-      catch (com.sun.jersey.api.client.ClientHandlerException e) {
-        tries++;
-        if (tries > maxTries)
+      catch (ClientHandlerException e) {
+        if (++tries >= maxTries)
           throw e;
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
@@ -111,13 +111,23 @@ public class LivePaperSession {
       throw new IllegalArgumentException("Blank arguments not accepted.");
     lpp_basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(StandardCharsets.UTF_8));
   }
-  public static Builder createWebResource(String location) {
+  static Builder createWebResource(String location) {
     return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v" + Version.VERSION);
   }
-  public static Builder createWebResourceUnTagged(String location) {
+  static Builder createWebResourceUnTagged(String location) {
     disableCertificateValidation();
-    ClientConfig config = new DefaultClientConfig();
-    Client client = Client.create(config);
+    Client client = null;
+    client = Client.create(new DefaultClientConfig());
+    // the following line of code, and the ConnectionFactory class, are from this article:
+    // http://stackoverflow.com/questions/10415607/jersey-client-set-proxy (search "easier approach")
+    // these changes are to get the download of the user's image (for watermarking) to work
+    client = new Client(new URLConnectionClientHandler(new ConnectionFactory()));
+    String to = System.getProperty("PROPERTY_READ_TIMEOUT");
+    if (to != null && to.length() > 0)
+      client.setReadTimeout(Integer.parseInt(to));
+    to = System.getProperty("PROPERTY_CONNECT_TIMEOUT");
+    if (to != null && to.length() > 0)
+      client.setConnectTimeout(Integer.parseInt(to));
     WebResource webResource = client.resource(UriBuilder.fromUri(location).build());
     return webResource.getRequestBuilder();
   }
@@ -165,15 +175,14 @@ public class LivePaperSession {
     int tries = 0;
     while (true) {
       try {
-        ClientResponse response = LivePaperSession.createWebResource(imageUrl).
+        ClientResponse response = createWebResource(imageUrl).
             accept(imageType).
             header("Authorization", getLppAccessToken()).
             get(ClientResponse.class);
         return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
       }
-      catch (IOException e) {
-        tries++;
-        if (tries > maxTries)
+      catch (IOException | ClientHandlerException e) {
+        if (++tries >= maxTries)
           throw new LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
@@ -199,7 +208,7 @@ public class LivePaperSession {
     ObjectMapper mapper = JsonFactory.create();
     String body = mapper.writeValueAsString(bodyMap);
     Builder webResource = null;
-    webResource = LivePaperSession.createWebResource(url);
+    webResource = createWebResource(url);
     ClientResponse response = null;
     while (true) {
       try {
@@ -210,6 +219,13 @@ public class LivePaperSession {
             accept("application/json").
             header("Authorization", getLppAccessToken()).
             get(ClientResponse.class);
+            break;
+          case PUT:
+            response = webResource.
+            header("Content-Type", "application/json").
+            accept("application/json").
+            header("Authorization", getLppAccessToken()).
+            put(ClientResponse.class, body);
             break;
           case POST:
             response = webResource.
@@ -225,21 +241,17 @@ public class LivePaperSession {
             header("Authorization", getLppAccessToken()).
             delete(ClientResponse.class, body);
             break;
-          case UPDATE:
-            throw new IllegalStateException("UPDATE has not been handled yet!");
         }
         responseCode = response.getStatus();
         if (responseCode == 401) { // authentication problem
-          tries++;
-          if (tries > maxTries)
+          if (++tries >= maxTries)
             throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
           continue;
         }
         break;
       }
-      catch (com.sun.jersey.api.client.ClientHandlerException e) {
-        tries++;
-        if (tries > maxTries)
+      catch (ClientHandlerException e) {
+        if (++tries >= maxTries)
           throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
@@ -258,6 +270,10 @@ public class LivePaperSession {
           return mapper.readValue(response.getEntity(String.class), Map.class);
         // 404: fail to list/get non-existent object
         break;
+      case PUT:
+        if (responseCode == 200) // 200: update object
+          return mapper.readValue(response.getEntity(String.class), Map.class);
+        break;
       case POST:
         if (responseCode == 201) // 201: created new object
           return mapper.readValue(response.getEntity(String.class), Map.class);
@@ -268,8 +284,6 @@ public class LivePaperSession {
         if (responseCode == 200) // 200: delete object
           return null;
         break;
-      case UPDATE:
-        throw new IllegalStateException("UPDATE has not been handled yet!");
     }
     String message = htmlStripToH1(response.getEntity(String.class));
     throw new LivePaperException(responseCode + ": " + message + " (" + method + " " + url + ")");
@@ -319,7 +333,7 @@ public class LivePaperSession {
    * @throws LivePaperException
    */
   public byte[] createWatermarkedImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked, String imageUrlForPayoff) throws LivePaperException {
-    String    stored_image_url = Image.upload(this, urlForImageToBeWatermarked);
+    String    stored_image_url = ImageStorageService.upload(this, urlForImageToBeWatermarked);
     WmTrigger tr = WmTrigger.create(this, name, strength, resolution, stored_image_url);
     Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
     Link.create(this, name, tr, po);

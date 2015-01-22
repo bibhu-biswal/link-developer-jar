@@ -51,6 +51,16 @@ public abstract class BaseObject {
     }
     return this;
   }
+  public BaseObject update() throws LivePaperException {
+    validate_attributes();
+    if (getId().length() == 0)
+      throw new IllegalStateException("Must call create() or get() before calling update()");
+    Map<String, Object> response = lp.rest_request(api_url()+ "/" + getId(), Method.PUT, update_body());
+    if (response == null)
+      throw new LivePaperException("Unable to update new " + this.getClass().getName() + " object!");
+    parse(response);
+    return this;
+  }
   protected abstract void validate_attributes();
   protected void delete() throws LivePaperException {
     if (getId().length() == 0)
@@ -59,6 +69,7 @@ public abstract class BaseObject {
   }
   protected abstract String api_url();
   protected abstract Map<String, Object> create_body();
+  protected abstract Map<String, Object> update_body();
   protected abstract BaseObject parse(Map<String, Object> responseMap);
   @SuppressWarnings("unchecked")
   protected void assign_attributes(Map<String, Object> map) {

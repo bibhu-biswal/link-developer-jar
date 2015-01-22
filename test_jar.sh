@@ -24,8 +24,10 @@ if [ "$jar_version" != "$ver" ]; then
   exit 1
 fi
 
+echo "${CYAN}Defining Network Timeout options (10000 millisecond)${RESET}"
+time_opts="-DPROPERTY_READ_TIMEOUT=10000 -DPROPERTY_CONNECT_TIMEOUT=10000"
 echo "${CYAN}Running Basic Test [com.hp.livepaper.LivePaperExample.main()]...${RESET}"
-java $proxy_opts -cp $cp:$jar com.hp.livepaper.LivePaperExample || exit $?
+java $time_opts $proxy_opts -cp $cp:$jar com.hp.livepaper.LivePaperExample || exit $?
 
 echo
 echo "${CYAN}Running Additional Tests...${RESET}"

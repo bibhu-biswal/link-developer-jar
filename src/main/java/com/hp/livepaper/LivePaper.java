@@ -6,10 +6,10 @@ package com.hp.livepaper;
  * shortened URLs.
  */
 public class LivePaper {
-  public static final String API_VERSION      = "v1/";
-  public static final String API_HOST         = "https://www.livepaperapi.com/api/"+API_VERSION;
-  public static final String API_HOST_AUTH    = "https://www.livepaperapi.com/auth/"+API_VERSION+"token";
-  public static final String API_HOST_STORAGE = "https://storage.livepaperapi.com/objects/"+API_VERSION+"files";
+  public static final String API_VERSION      = "v1";
+  public static final String API_HOST         = "https://www.livepaperapi.com/api/"+API_VERSION+"/";
+  public static final String API_HOST_AUTH    = "https://www.livepaperapi.com/auth/"+API_VERSION+"/token";
+  public static final String API_HOST_STORAGE = "https://storage.livepaperapi.com/objects/"+API_VERSION+"/files";
   /**
    * Create an authorized session for the client.
    * @param clientID The clientID provided in the access credentials

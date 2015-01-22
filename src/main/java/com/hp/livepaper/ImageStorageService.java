@@ -5,20 +5,20 @@ import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource.Builder;
 
-public class Image {
-  private Image() {}
+public class ImageStorageService {
+  private ImageStorageService() {}
   public static String upload(LivePaperSession lp, String imageUrl) throws LivePaperException {
     if (imageUrl == null || imageUrl.length() == 0)
       throw new java.lang.IllegalArgumentException("image_url cannot be null or blank");
     // return the original img uri if it is LivePaper storage
     if (imageUrl.contains(LivePaper.API_HOST_STORAGE))
       return imageUrl;
-    byte[] bytes = obtainImageBytes(imageUrl);
+    byte[] bytes = downloadFromUrl(imageUrl);
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
       try {
-        Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(LivePaper.API_HOST_STORAGE);
+        Builder webResource = LivePaperSession.createWebResource(LivePaper.API_HOST_STORAGE);
         ClientResponse response = webResource.
             header("Content-Type", "image/jpg").
             header("Authorization", lp.getLppAccessToken()).
@@ -41,12 +41,12 @@ public class Image {
       }
     }
   }
-  private static byte[] obtainImageBytes(String imageUrl) throws LivePaperException {
+  private static byte[] downloadFromUrl(String imageUrl) throws LivePaperException {
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
       try {
-        Builder webResource = com.hp.livepaper.LivePaperSession.createWebResource(imageUrl);
+        Builder webResource = LivePaperSession.createWebResource(imageUrl);
         ClientResponse imgResponse = null;
         imgResponse = webResource.
             accept("image/jpg").

@@ -3,6 +3,7 @@ package com.hp.livepaper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.boon.json.JsonFactory;
 import com.hp.livepaper.LivePaperSession.Method;
 
 public abstract class Trigger extends BaseObject {
@@ -69,6 +70,16 @@ public abstract class Trigger extends BaseObject {
   }
   public void setSubscriptionExpiryDate(String subscriptionExpiryDate) {
     this.subscriptionExpiryDate = subscriptionExpiryDate;
+  }
+  @Override
+  protected Map<String, Object> update_body() {
+    Map<String, Object> body = new HashMap<String, Object>();
+    Map<String, Object> trigger = new HashMap<String, Object>();
+    body.put("trigger", trigger);
+    trigger.put("name", getName());
+    @SuppressWarnings("unused")
+    String bodytxt = JsonFactory.create().writeValueAsString(body);
+    return body;
   }
   @Override
   protected abstract void validate_attributes();
