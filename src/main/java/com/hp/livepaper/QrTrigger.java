@@ -34,7 +34,7 @@ public class QrTrigger extends Trigger {
     String params = "";
     if (width > 0)
       params = "?width=" + width;
-    return ImageStorage.download(lp, "image/png", this.getLinks().get("image") + params);
+    return ImageStorage.download(lp, this, ImageStorage.Type.PNG, params);
   }
   protected QrTrigger(LivePaperSession lp, String name) {
     this.lp = lp;

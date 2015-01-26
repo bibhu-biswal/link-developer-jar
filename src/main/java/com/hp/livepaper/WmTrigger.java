@@ -25,7 +25,7 @@ public class WmTrigger extends Trigger {
    * @throws LivePaperException
    */
   public byte[]     downloadWatermarkedJpgImage() throws LivePaperException {
-    return ImageStorage.download(lp, "image/jpeg", this.getLinks().get("image"));
+    return ImageStorage.download(lp, this, ImageStorage.Type.JPEG);
   }
   public Strength   getStrength() {
     return strength;

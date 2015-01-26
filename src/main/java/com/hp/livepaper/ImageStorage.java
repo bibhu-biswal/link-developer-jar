@@ -1,6 +1,8 @@
 package com.hp.livepaper;
 
 import java.io.IOException;
+import java.util.Map;
+import org.boon.json.JsonFactory;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource.Builder;
@@ -11,6 +13,7 @@ import com.sun.jersey.api.client.WebResource.Builder;
  *
  */
 public class ImageStorage {
+  public enum Type { JPEG, PNG }
   /**
    * Since you can only watermark images stored at the Live Paper Storage service, this method exists to allow
    * you to upload an images to the Storage ervice.  It returns a new URL, for the location of the copied image
@@ -23,9 +26,9 @@ public class ImageStorage {
   public static String uploadJpg(LivePaperSession lp, String imageUrl) throws LivePaperException {
     if (imageUrl == null || imageUrl.length() == 0)
       throw new java.lang.IllegalArgumentException("image_url cannot be null or blank");
-    if ( imageIsOnLivePaperStorageService(imageUrl) )
+    if ( imageIsAlreadyOnLivePaperStorageService(imageUrl) )
       return imageUrl;
-    byte[] bytes = download(null, "image/jpg", imageUrl);
+    byte[] bytes = download(null, Type.JPEG, imageUrl);
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
@@ -57,26 +60,55 @@ public class ImageStorage {
    * Returns an image from the Live Paper Storage service.  This may be a non-watermarked image (that you
    * previously uploaded with uploadJpg()).  Or it may be a watermarked version of an image you previously
    * uploaded with uploadJpg().   Or it may be a QR Code image that you are downloading.
-   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param lp is the LivePaperSession (which holds the access token for the user).  If downloading from
+   * a URL that is not backed by Live Paper, leave this null, to indicate that the download call does not
+   * need a Live Paper authentication header.
+   * @param trigger A Trigger object (which internally knows the URL from which to download it's image)
    * @param imageType indicates whether the image should be downloaded as a JPEG or a PNG.  QR Code images
    * are always PNG type, and images to be watermarked, or already watermarked, are always JPEG type.
-   * @param imageUrl The URL of the image that you want to download from the Live Paper Storage service.
    * @return the byte array containing the image
    * @throws LivePaperException
    */
-  public static byte[] download(LivePaperSession lp, String imageType, String imageUrl) throws LivePaperException {
+  public static byte[] download(LivePaperSession lp, Trigger trigger, Type type) throws LivePaperException {
+    return download(lp, trigger, type, "");
+  }
+  /**
+   * Returns an image from the Live Paper Storage service.  This may be a non-watermarked image (that you
+   * previously uploaded with uploadJpg()).  Or it may be a watermarked version of an image you previously
+   * uploaded with uploadJpg().   Or it may be a QR Code image that you are downloading.
+   * @param lp is the LivePaperSession (which holds the access token for the user).  If downloading from
+   * a URL that is not backed by Live Paper, leave this null, to indicate that the download call does not
+   * need a Live Paper authentication header.
+   * @param trigger A Trigger object (which internally knows the URL from which to download it's image)
+   * @param imageType indicates whether the image should be downloaded as a JPEG or a PNG.  QR Code images
+   * are always PNG type, and images to be watermarked, or already watermarked, are always JPEG type.
+   * @param params Any additional params to be added to the URL when downloading the image.
+   * @return the byte array containing the image
+   * @throws LivePaperException
+   */
+  public static byte[] download(LivePaperSession lp, Trigger trigger, Type type, String params) throws LivePaperException {
+    String imageUrl = trigger.getLinks().get("image")+params;
+    return download(lp, type, imageUrl);
+  }
+  protected static byte[] download(LivePaperSession lp, Type type, String imageUrl) throws LivePaperException {
+    String imageType = "image/"+type.toString().toLowerCase();
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
       try {
         Builder builder = LivePaperSession.createWebResource(imageUrl);
         builder.accept(imageType);
-        if ( imageIsOnLivePaperStorageService(imageUrl) )
+        if ( lp != null )
           builder.header("Authorization", lp.getLppAccessToken());
         ClientResponse response = builder.get(ClientResponse.class);
+        if (response.getStatus() != 200) {
+          @SuppressWarnings("unchecked")
+          Map<String, Object> map = JsonFactory.create().readValue(response.getEntity(String.class), Map.class);
+          throw new LivePaperException(map.toString()); // throw to handler below, for retry support
+        }
         return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
       }
-      catch (IOException | ClientHandlerException e) {
+      catch (IOException | ClientHandlerException | LivePaperException e) {
         if (++tries >= maxTries)
           throw new LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
@@ -96,7 +128,7 @@ public class ImageStorage {
    * @param imageUrl
    * @return
    */
-  protected static boolean imageIsOnLivePaperStorageService(String imageUrl) {
+  protected static boolean imageIsAlreadyOnLivePaperStorageService(String imageUrl) {
     return imageUrl.toLowerCase().contains(LivePaper.API_HOST_STORAGE.toLowerCase());
   }
   private ImageStorage() {}
