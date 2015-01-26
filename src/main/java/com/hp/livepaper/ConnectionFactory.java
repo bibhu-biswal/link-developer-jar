@@ -7,6 +7,12 @@ import java.net.Proxy;
 import java.net.URL;
 import com.sun.jersey.client.urlconnection.HttpURLConnectionFactory;
 
+/**
+ * Class used to create an HttpURLConnection with a proxy, if the Java proxy properties
+ * have been set with -Dhttps.proxyHost=<proxy host> and -Dhttps.proxyPort=<proxy port>
+ * (based on the "There is an easier approach" solution proposed at
+ * "http://stackoverflow.com/questions/10415607/jersey-client-set-proxy")
+ */
 public class ConnectionFactory implements HttpURLConnectionFactory {
   public ConnectionFactory() {}
   @Override

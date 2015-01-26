@@ -7,33 +7,106 @@ import org.boon.json.JsonFactory;
 import com.hp.livepaper.LivePaperSession.Method;
 
 public class Link extends BaseObject {
-  public static final String API_URL = LivePaper.API_HOST + "links";
-  // public static methods
-  public static String getItemKey() {
-    return "link";
+  protected static final String API_URL = LivePaper.API_HOST + "links";
+  protected static final String ITEM_KEY = "link";
+  protected static final String LIST_KEY = "links";
+  /**
+   * Returns a Map of all the Link objects for the given account.  The Map uses the Id of the object as the key.
+   * The value in the Map is the Link object itself.
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @return Returns a Map of all Link objects.
+   * @throws LivePaperException
+   */
+  @SuppressWarnings("unchecked")
+  public static Map<String, Link> list(LivePaperSession lp) throws LivePaperException {
+    Map<String, Link> links = new HashMap<String, Link>();
+    Map<String, Object> listOfLinks = lp.rest_request(Link.API_URL, Method.GET);
+    for (Map<String, Object> linkData : (List<Map<String, Object>>) listOfLinks.get(LIST_KEY)) {
+      Link tr = new Link(linkData);
+      links.put(tr.getId(), tr);
+    }
+    return links;
   }
-  public static String getListKey() {
-    return "links";
+  /**
+   * Obtains a Link object, given the id of the object.
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param id is the identifier for an existing Link object.
+   * @return The Link object represented by the id is returned.
+   * @throws LivePaperException
+   */
+  public static Link get(LivePaperSession lp, String id) throws LivePaperException {
+    try {
+      return new Link(lp, id);
+    }
+    catch (LivePaperException e) {
+      throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
+    }
   }
-  // member fields
-  private Trigger trigger = null;
-  private void setTrigger(Trigger trigger) {
-    if (getTriggerId().length() > 0 && !(trigger.getId().equals(getTriggerId())))
-      throw new IllegalStateException("Link.setTrigger() called (for trigger id of " + trigger.getId() + "), but the Link already has a different TriggerId! [id:" + getTriggerId() + "]");
-    this.trigger = trigger;
+  /**
+   * Creates a Link object via a REST API POST call to the Live Paper API
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param name is the name attribute to be given to the Link object.
+   * @param trigger is the Trigger object to be linked to the Payoff.
+   * @param payoff is the Payoff object to be linked to the Trigger.
+   * @return Returns a new Link object.
+   * @throws LivePaperException
+   */
+  public static Link create(LivePaperSession lp, String name, Trigger trigger, Payoff payoff) throws LivePaperException {
+    return (new Link(lp, name, trigger, payoff)).save();
+  }
+  /**
+   * Creates a Link object via a REST API POST call to the Live Paper API
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param name is the name attribute to be given to the Link object.
+   * @param triggerId is the Id of the Trigger object to be linked to the Payoff.
+   * @param payoffId is the Id of the Payoff object to be linked to the Trigger.
+   * @return Returns a new Link object.
+   * @throws LivePaperException
+   */
+  public static Link create(LivePaperSession lp, String name, String triggerId, String payoffId) throws LivePaperException {
+    return (new Link(lp, name, triggerId, payoffId)).save();
   }
   public Trigger getTrigger() throws LivePaperException {
     if (trigger == null && getTriggerId().length() > 0)
       trigger = Trigger.get(lp, getTriggerId());
     return trigger;
   }
-  private String triggerId = "";
-  public String getTriggerId() {
+  public String  getTriggerId() {
     if (trigger != null)
       return trigger.getId();
     return triggerId;
   }
-  public void setTriggerId(String triggerId) {
+  public Payoff  getPayoff() throws LivePaperException {
+    if (payoff == null && getPayoffId().length() > 0)
+      payoff = Payoff.get(lp, getPayoffId());
+    return payoff;
+  }
+  public String  getPayoffId() {
+    if (payoff != null)
+      return payoff.getId();
+    return payoffId;
+  }
+  protected Link(LivePaperSession lp, String name, Trigger trigger, Payoff payoff) {
+    this.lp = lp;
+    setName(name);
+    setTrigger(trigger);
+    setPayoff(payoff);
+  }
+  protected Link(LivePaperSession lp, String name, String triggerId, String payoffId) {
+    this.lp = lp;
+    setName(name);
+    setTriggerId(triggerId);
+    setPayoffId(payoffId);
+  }
+  protected Link(Map<String, Object> map) {
+    this.assign_attributes(map);
+  }
+  protected void setTrigger(Trigger trigger) {
+    if (getTriggerId().length() > 0 && !(trigger.getId().equals(getTriggerId())))
+      throw new IllegalStateException("Link.setTrigger() called (for trigger id of " + trigger.getId() + "), but the Link already has a different TriggerId! [id:" + getTriggerId() + "]");
+    this.trigger = trigger;
+  }
+  protected void setTriggerId(String triggerId) {
     if (trigger != null) {
       if (trigger.getId().equals(triggerId))
         return;
@@ -41,13 +114,12 @@ public class Link extends BaseObject {
     }
     this.triggerId = triggerId;
   }
-  private String payoffId = "";
-  public String getPayoffId() {
-    if (payoff != null)
-      return payoff.getId();
-    return payoffId;
+  protected void setPayoff(Payoff payoff) {
+    if (getPayoffId().length() > 0 && !(payoff.getId().equals(getPayoffId())))
+      throw new IllegalStateException("Link.setPayoff() called (for payoff id of " + payoff.getId() + "), but the Link already has a different PayoffId! [id:" + getPayoffId() + "]");
+    this.payoff = payoff;
   }
-  public void setPayoffId(String payoffId) {
+  protected void setPayoffId(String payoffId) {
     if (payoff != null) {
       if (payoff.getId().equals(payoffId))
         return;
@@ -55,57 +127,20 @@ public class Link extends BaseObject {
     }
     this.payoffId = payoffId;
   }
-  private Payoff payoff = null;
-  private void setPayoff(Payoff payoff) {
-    if (getPayoffId().length() > 0 && !(payoff.getId().equals(getPayoffId())))
-      throw new IllegalStateException("Link.setPayoff() called (for payoff id of " + payoff.getId() + "), but the Link already has a different PayoffId! [id:" + getPayoffId() + "]");
-    this.payoff = payoff;
-  }
-  public Payoff getPayoff() throws LivePaperException {
-    if (payoff == null && getPayoffId().length() > 0)
-      payoff = Payoff.get(lp, getPayoffId());
-    return payoff;
-  }
-  // Constructor
-  public Link(LivePaperSession lp, String name, Trigger trigger, Payoff payoff) {
-    this.lp = lp;
-    setName(name);
-    setTrigger(trigger);
-    setPayoff(payoff);
-  }
-  public Link(LivePaperSession lp, String name, String triggerId, String payoffId) {
-    this.lp = lp;
-    setName(name);
-    setTriggerId(triggerId);
-    setPayoffId(payoffId);
-  }
-  public Link(Map<String, Object> map) {
-    this.assign_attributes(map);
-  }
-  private Link(LivePaperSession lp, String id) throws LivePaperException {
+  protected Link(LivePaperSession lp, String id) throws LivePaperException {
     this(lp.rest_request(API_URL + "/" + id, Method.GET));
   }
-  public static Link get(LivePaperSession lp, String id) throws LivePaperException {
-    try {
-      return new Link(lp, id);
-    }
-    catch (LivePaperException e) {
-      throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(getItemKey()) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
-    }
-  }
-  public static Link create(LivePaperSession lp, String name, Trigger trigger, Payoff payoff) throws LivePaperException {
-    return (new Link(lp, name, trigger, payoff)).save();
-  }
-  public static Link create(LivePaperSession lp, String name, String triggerId, String payoffId) throws LivePaperException {
-    return (new Link(lp, name, triggerId, payoffId)).save();
-  }
-  // Overrides
   @Override
   protected String api_url() {
     return API_URL;
   }
+  /**
+   * Create this object via the API by doing a POST
+   * @return
+   * @throws LivePaperException
+   */
   @Override
-  public Link save() throws LivePaperException {
+  protected Link save() throws LivePaperException {
     if (trigger.getId().length() == 0)
       trigger.save();
     if (payoff.getId().length() == 0)
@@ -115,7 +150,7 @@ public class Link extends BaseObject {
   @Override
   protected BaseObject parse(Map<String, Object> responseMap) {
     @SuppressWarnings("unchecked")
-    Map<String, Object> data = (Map<String, Object>) responseMap.get(getItemKey());
+    Map<String, Object> data = (Map<String, Object>) responseMap.get(ITEM_KEY);
     assign_attributes(data);
     return this;
   }
@@ -132,28 +167,6 @@ public class Link extends BaseObject {
       sb.setLength(sb.length() - 2);
       throw new IllegalArgumentException("Invalid state for this operation! (missing attributes: " + sb.toString() + ")");
     }
-  }
-  @Override
-  protected Map<String, Object> create_body() {
-    Map<String, Object> linkContent = new HashMap<String, Object>();
-    linkContent.put("name", trigger.getName());
-    linkContent.put("triggerId", trigger.getId());
-    linkContent.put("payoffId", payoff.getId());
-    Map<String, Object> body = new HashMap<String, Object>();
-    body.put("link", linkContent);
-    @SuppressWarnings("unused")
-    String bodytxt = JsonFactory.create().writeValueAsString(body);
-    return body;
-  }
-  @Override
-  protected Map<String, Object> update_body() {
-    Map<String, Object> linkContent = new HashMap<String, Object>();
-    linkContent.put("name", trigger.getName());
-    Map<String, Object> body = new HashMap<String, Object>();
-    body.put("link", linkContent);
-    @SuppressWarnings("unused")
-    String bodytxt = JsonFactory.create().writeValueAsString(body);
-    return body;
   }
   @Override
   protected void assign_attributes(Map<String, Object> data) {
@@ -180,14 +193,30 @@ public class Link extends BaseObject {
       }*/
     //@formatter:on
   }
-  @SuppressWarnings("unchecked")
-  public static Map<String, Link> list(LivePaperSession lp) throws LivePaperException {
-    Map<String, Link> links = new HashMap<String, Link>();
-    Map<String, Object> listOfLinks = lp.rest_request(Link.API_URL, Method.GET);
-    for (Map<String, Object> linkData : (List<Map<String, Object>>) listOfLinks.get(getListKey())) {
-      Link tr = new Link(linkData);
-      links.put(tr.getId(), tr);
-    }
-    return links;
+  @Override
+  protected Map<String, Object> create_body() {
+    Map<String, Object> linkContent = new HashMap<String, Object>();
+    linkContent.put("name", trigger.getName());
+    linkContent.put("triggerId", trigger.getId());
+    linkContent.put("payoffId", payoff.getId());
+    Map<String, Object> body = new HashMap<String, Object>();
+    body.put("link", linkContent);
+    @SuppressWarnings("unused")
+    String bodytxt = JsonFactory.create().writeValueAsString(body);
+    return body;
   }
+  @Override
+  protected Map<String, Object> update_body() {
+    Map<String, Object> linkContent = new HashMap<String, Object>();
+    linkContent.put("name", trigger.getName());
+    Map<String, Object> body = new HashMap<String, Object>();
+    body.put("link", linkContent);
+    @SuppressWarnings("unused")
+    String bodytxt = JsonFactory.create().writeValueAsString(body);
+    return body;
+  }
+  private Trigger trigger = null;
+  private String  triggerId = "";
+  private String  payoffId = "";
+  private Payoff  payoff = null;
 }

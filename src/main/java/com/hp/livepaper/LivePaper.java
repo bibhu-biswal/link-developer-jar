@@ -11,7 +11,7 @@ public class LivePaper {
   public static final String API_HOST_AUTH    = "https://www.livepaperapi.com/auth/"+API_VERSION+"/token";
   public static final String API_HOST_STORAGE = "https://storage.livepaperapi.com/objects/"+API_VERSION+"/files";
   /**
-   * Create an authorized session for the client.
+   * Create an authorized session, thus allowing interaction with the rest of the Live Paper API.
    * @param clientID The clientID provided in the access credentials
    * @param secret The client secret provided in the access credentials
    * @return An authorized instance of LivePaper that allows access to Live Paper services

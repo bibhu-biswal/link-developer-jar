@@ -25,28 +25,54 @@ import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 public class LivePaperSession {
-  public enum Method {
-    GET, PUT, POST, DELETE;
+  public static LivePaperSession create(String clientId, String secretId) {
+    return new LivePaperSession(clientId, secretId);
   }
-  public static LivePaperSession create(String clientID, String secret) {
-    return new LivePaperSession(clientID, secret);
+  /**
+   * Shortens the url passed as the argument.
+   * @param longURL The URL that needs to be shortened.
+   * @return The shortened URL or null if passed string is null, or if access is unauthorized, or in case of server error.
+   */
+  public String createShortUrl(String name, String url) throws LivePaperException {
+    ShortTrigger tr = ShortTrigger.create(this, name);
+    Payoff       po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
+    Link.create(this, name, tr, po);
+    return tr.getShortUrl();
   }
-  private String lpp_access_token = "";
-  private String lpp_basic_auth   = "";
-  private static int network_error_retry_sleep_period = 3000;
-  public  static void setNetworkErrorRetrySleepPeriod(int sleepPeriodInMilliseconds) {
-    network_error_retry_sleep_period = sleepPeriodInMilliseconds;
-    if (network_error_retry_sleep_period < 0)
-      network_error_retry_sleep_period = 1000;
+  /**
+   * Returns a byte representation of the QR code that encodes the passed URL.
+   * @param url The URL that needs to be QR-coded.
+   * @return The byte representation of the QR code or null if passed string is null, or if access is unauthorized, or in case of server error.
+   */
+  public byte[] createQrCode(String name, String url, int width) throws LivePaperException {
+    QrTrigger tr = QrTrigger.create(this, name);
+    Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
+    Link.create(this, name, tr, po);
+    return    tr.downloadQrCode(width);
   }
-  public  static int getNetworkErrorRetrySleepPeriod() {
-    return network_error_retry_sleep_period;
+  /**
+   * Returns a byte representation of the watermarked JPEG image that encodes the passed URL.
+   * @param imageLoc The the URL where the image to be watermarked is hosted (Note that if the image
+   * is not being hosted on the Live Paper Storage service, then the image will be copied to Live Paper Storage)
+   * @param url The URL to be encoded in the watermarked image.
+   * @return The byte array containing the watermarked image.
+   * @throws LivePaperException
+   */
+  public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForJpgImageToBeWatermarked, String imageUrlForPayoff) throws LivePaperException {
+    String    stored_image_url = ImageStorage.uploadJpg(this, urlForJpgImageToBeWatermarked);
+    WmTrigger tr = WmTrigger.create(this, name, strength, resolution, stored_image_url);
+    Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
+    Link.create(this, name, tr, po);
+    return tr.downloadWatermarkedJpgImage();
   }
-  private static int network_error_retry_count = 5;
+  /**
+   * This method allows specifying that network errors should be automatically retried.
+   * @param retryCount specifies the number of times to retry in the face of a network error.
+   * This parameter defaults to zero (there will be zero/no retries in case of a network failure)
+   */
   public static void setNetworkErrorRetryCount(int retryCount) {
     network_error_retry_count = retryCount;
     if (network_error_retry_count < 0)
@@ -55,6 +81,28 @@ public class LivePaperSession {
   public static int getNetworkErrorRetryCount() {
     return network_error_retry_count;
   }
+  /**
+   * When using setNetworkErrorRetryCount(), this method specifies how long to sleep between network
+   * errors and a retry.  Default is zero.
+   * @param sleepPeriodInMilliseconds
+   */
+  public  static void setNetworkErrorRetrySleepPeriod(int sleepPeriodInMilliseconds) {
+    network_error_retry_sleep_period = sleepPeriodInMilliseconds;
+    if (network_error_retry_sleep_period < 0)
+      network_error_retry_sleep_period = 1000;
+  }
+  public  static int getNetworkErrorRetrySleepPeriod() {
+    return network_error_retry_sleep_period;
+  }
+  /**
+   * Returns the API access token.  When first called, the access token will have to be obtained from the API
+   * (using the clientID and secretID passed to the create() factory method).  The access token will be cached
+   * after that, and the cached value will be returned by this method.   Since access tokens eventually expire,
+   * the token returned here is NOT guaranteed to be valid all all times.  Users of the token should call
+   * resetLppAccessToken() when the token is seen to be invalid.  This will ensure that future calls to this
+   * method will obtain a new access token.
+   * @return the API access token.
+   */
   public String getLppAccessToken() {
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
@@ -98,29 +146,26 @@ public class LivePaperSession {
       }
     }
   }
+  /**
+   * Allows "erasing" the existing access token.  Useful when the access token is known to have expired,
+   * and the user wants to force getLppAccessToken() calls to obtain a new access token.
+   */
   public void resetLppAccessToken() {
-    lpp_access_token = "";
+    lpp_access_token = ""; // a new token will be obtained on the next call to getLppAccessToken()
   }
-  public String getLppBasicAuth() {
-    return lpp_basic_auth;
-  }
-  private LivePaperSession(String clientID, String secret) {
+  protected LivePaperSession(String clientID, String secret) {
     if (clientID == null || secret == null)
       throw new IllegalArgumentException("Null arguments not accepted.");
     if (clientID.length() == 0 || secret.length() == 0)
       throw new IllegalArgumentException("Blank arguments not accepted.");
     lpp_basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(StandardCharsets.UTF_8));
   }
-  static Builder createWebResource(String location) {
-    return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v" + Version.VERSION);
+  protected static Builder createWebResource(String location) {
+    return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v" + Version.JAR_VERSION);
   }
-  static Builder createWebResourceUnTagged(String location) {
+  protected static Builder createWebResourceUnTagged(String location) {
     disableCertificateValidation();
     Client client = null;
-    client = Client.create(new DefaultClientConfig());
-    // the following line of code, and the ConnectionFactory class, are from this article:
-    // http://stackoverflow.com/questions/10415607/jersey-client-set-proxy (search "easier approach")
-    // these changes are to get the download of the user's image (for watermarking) to work
     client = new Client(new URLConnectionClientHandler(new ConnectionFactory()));
     String to = System.getProperty("PROPERTY_READ_TIMEOUT");
     if (to != null && to.length() > 0)
@@ -131,7 +176,7 @@ public class LivePaperSession {
     WebResource webResource = client.resource(UriBuilder.fromUri(location).build());
     return webResource.getRequestBuilder();
   }
-  private static void disableCertificateValidation() {
+  protected static void disableCertificateValidation() {
     // Create a trust manager that does not validate certificate chains
     TrustManager[] trustAllCerts = new TrustManager[] {
         new X509TrustManager() {
@@ -160,7 +205,7 @@ public class LivePaperSession {
     }
     catch (Exception e) {}
   }
-  public static byte[] inputStreamToByteArray(InputStream is) throws IOException {
+  protected static byte[] inputStreamToByteArray(InputStream is) throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     int next = is.read();
     while (next > -1) {
@@ -170,37 +215,11 @@ public class LivePaperSession {
     bos.flush();
     return bos.toByteArray();
   }
-  public byte[] getImageBytes(String imageType, String imageUrl) throws LivePaperException {
-    int maxTries = LivePaperSession.getNetworkErrorRetryCount();
-    int tries = 0;
-    while (true) {
-      try {
-        ClientResponse response = createWebResource(imageUrl).
-            accept(imageType).
-            header("Authorization", getLppAccessToken()).
-            get(ClientResponse.class);
-        return LivePaperSession.inputStreamToByteArray(response.getEntityInputStream());
-      }
-      catch (IOException | ClientHandlerException e) {
-        if (++tries >= maxTries)
-          throw new LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
-        System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
-        System.err.println("  (error was \"" + e.getMessage() + "\")");
-        try {
-          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
-        }
-        catch (InterruptedException e1) {
-          throw new LivePaperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
-        }
-        continue;
-      }
-    }
-  }
-  public Map<String, Object> rest_request(String url, Method method) throws LivePaperException {
+  protected Map<String, Object> rest_request(String url, Method method) throws LivePaperException {
     return rest_request(url, method, new HashMap<String, Object>());
   }
   @SuppressWarnings("unchecked")
-  public Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
+  protected Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
     // TODO: support "x_user_info: app=live_paper_jar" (so that API can track the source of the API calls)
     int responseCode = -1;
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
@@ -288,55 +307,29 @@ public class LivePaperSession {
     String message = htmlStripToH1(response.getEntity(String.class));
     throw new LivePaperException(responseCode + ": " + message + " (" + method + " " + url + ")");
   }
-  private final static Pattern htmlEncodedRestMessagePattern = Pattern.compile("(^.*<h1>)(.*)(</h1>.*$)");
-  /**
-   * LivePaper REST API calls sometimes return HTML with the important message strored in the H1 tag.
-   * @param possibleHtmlEncodedRestMessage the Rest error message that is possibly encoded in html.
-   * @return the original string if not encoded; the contents of the H1 tag if encoded
-   */
-  private static String htmlStripToH1(String possibleHtmlEncodedRestMessage) {
-    Matcher m = htmlEncodedRestMessagePattern.matcher(possibleHtmlEncodedRestMessage);
-    if (m.find())
-      return m.group(2);
-    return possibleHtmlEncodedRestMessage;
-  }
-  public static String capitalize(String line) {
+  protected static String capitalize(String line) {
     return Character.toUpperCase(line.charAt(0)) + line.substring(1);
   }
   /**
-   * Shortens the url passed as the argument.
-   * @param longURL The URL that needs to be shortened.
-   * @return The shortened URL or null if passed string is null, or if access is unauthorized, or in case of server error.
+   * LivePaper REST API calls sometimes return HTML with the important message stored in the H1 tag.
+   * @param possibleHtmlEncodedRestMessage the REST error message that is possibly encoded in HTML.
+   * @return the original string (if it was not HTML encoded), or the contents of the H1 tag if encoded.
    */
-  public String createShortUrl(String name, String url) throws LivePaperException {
-    ShortTrigger tr = ShortTrigger.create(this, name);
-    Payoff       po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
-    Link.create(this, name, tr, po);
-    return tr.getShortUrl();
+  protected static String htmlStripToH1(String possibleHtmlEncodedRestMessage) {
+    Matcher m = htmlEncodedRestRespsonseMessagePattern.matcher(possibleHtmlEncodedRestMessage);
+    if (m.find())
+      return m.group(1);
+    return possibleHtmlEncodedRestMessage;
   }
-  /**
-   * Returns a byte representation of the QR code that encodes the passed URL.
-   * @param url The URL that needs to be QR-coded.
-   * @return The byte representation of the QR code or null if passed string is null, or if access is unauthorized, or in case of server error.
-   */
-  public byte[] createQrCode(String name, String url, int width) throws LivePaperException {
-    QrTrigger tr = QrTrigger.create(this, name);
-    Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
-    Link.create(this, name, tr, po);
-    return    tr.downloadQrCode(width);
+  protected final static Pattern htmlEncodedRestRespsonseMessagePattern = Pattern.compile("^.*<h1>(.*)</h1>.*$");
+  protected enum Method {
+    GET, PUT, POST, DELETE;
   }
-  /**
-   * Returns a byte representation of the watermarked image that encodes the passed URL.
-   * @param imageLoc The the URL where the image is hosted
-   * @param url The URL that needs to be encoded in the image
-   * @return The byte representation of the watermarked image or null if passed string is null, or if access is unauthorized, or in case of server error.
-   * @throws LivePaperException
-   */
-  public byte[] createWatermarkedImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked, String imageUrlForPayoff) throws LivePaperException {
-    String    stored_image_url = ImageStorageService.upload(this, urlForImageToBeWatermarked);
-    WmTrigger tr = WmTrigger.create(this, name, strength, resolution, stored_image_url);
-    Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
-    Link.create(this, name, tr, po);
-    return tr.downloadWatermarkedImage();
+  private String getLppBasicAuth() {
+    return lpp_basic_auth;
   }
+  private transient String lpp_access_token = "";
+  private transient String lpp_basic_auth   = "";
+  private static int network_error_retry_sleep_period = 0;
+  private static int network_error_retry_count = 0;
 }

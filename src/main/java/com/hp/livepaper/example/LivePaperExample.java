@@ -1,4 +1,4 @@
-package com.hp.livepaper;
+package com.hp.livepaper.example;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,6 +6,15 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Scanner;
+import com.hp.livepaper.ImageStorage;
+import com.hp.livepaper.Link;
+import com.hp.livepaper.LivePaperException;
+import com.hp.livepaper.LivePaperSession;
+import com.hp.livepaper.Payoff;
+import com.hp.livepaper.QrTrigger;
+import com.hp.livepaper.ShortTrigger;
+import com.hp.livepaper.Trigger;
+import com.hp.livepaper.WmTrigger;
 
 public class LivePaperExample {
   /*
@@ -33,29 +42,8 @@ public class LivePaperExample {
         boolean testShortUrl  = true;
         boolean testQrCode    = true;
         boolean testWatermark = true;
-        boolean testDelete    = true;
         boolean testLists     = true;
-        if ( testDelete ) {
-          System.out.println("Initializing New Trigger...");
-          Trigger tr = new ShortTrigger(lp, "some name");
-          System.out.println("  Delete attempt should fail...");
-          try {
-            tr.delete();
-          }
-          catch (IllegalStateException e) {
-            if (!e.getMessage().contains("delete() method cannot be called")) {
-              System.err.println("rethrowing");
-              throw e;
-            }
-            System.out.println("    yep... it correctly failed...");
-          }
-          System.out.println("  calling Save() on the new object...");
-          tr.save();
-          System.out.println("  now calling Delete() on the new object...");
-          tr.delete();
-          System.out.println("    deleted ok.");
-        }
-        if ( testShortUrl ) {
+        if (testShortUrl) {
           System.out.println("Creating Short URL...");
           System.out.println("  ShortTrigger.create()...");
           ShortTrigger tr = ShortTrigger.create(lp, "My ShortTrigger");
@@ -90,15 +78,15 @@ public class LivePaperExample {
           System.out.println("  Done creating Short URL");
           System.out.println("  Updating Short URL");
           System.out.println("    ShortTrigger.setName()...");
-          tr.setName(tr.getName()+" (renamed)");
+          tr.setName(tr.getName() + " (renamed)");
           System.out.println("    ShortTrigger.update()...");
           tr.update();
           System.out.println("    Payoff.setName()...");
-          po.setName(po.getName()+" (renamed)");
+          po.setName(po.getName() + " (renamed)");
           System.out.println("    Payoff.update()...");
           po.update();
           System.out.println("    Link.setName()...");
-          ln.setName(ln.getName()+" (renamed)");
+          ln.setName(ln.getName() + " (renamed)");
           System.out.println("    Link.update()...");
           ln.update();
           System.out.println("  Deleting Link...");
@@ -125,7 +113,7 @@ public class LivePaperExample {
           tr = null;
           System.out.println();
         }
-        if ( testQrCode ) {
+        if (testQrCode) {
           System.out.println("Creating QR Code...");
           System.out.println("  QrTrigger.create()...");
           QrTrigger tr = QrTrigger.create(lp, "My QrTrigger");
@@ -159,9 +147,9 @@ public class LivePaperExample {
           System.out.println("  Downloading QR code...(at size of 250px)");
           byte[] qrbytes = tr.downloadQrCode(250);
           String img_out = "image_qr_code_" + sdf.format(Calendar.getInstance().getTime()) + ".png";
-          FileOutputStream fos0 = new FileOutputStream(img_out);
-          fos0.write(qrbytes);
-          fos0.close();
+          FileOutputStream fos = new FileOutputStream(img_out);
+          fos.write(qrbytes);
+          fos.close();
           System.out.println("    into local file \"" + img_out + '"');
           System.out.println("  Done creating QR Code.");
           System.out.println("  Deleting Link...");
@@ -179,8 +167,12 @@ public class LivePaperExample {
           System.out.println("Creating Watermarked Image...");
           String urlOfImageToBeWatermarked = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
           System.out.println("  Image.upload()...");
-          String uploaded_image_url = ImageStorageService.upload(lp,urlOfImageToBeWatermarked);
-          System.out.println("    uploaded image: " + uploaded_image_url);
+          System.out.println("    downloading user image from:");
+          System.out.println("      " + urlOfImageToBeWatermarked);
+          System.out.println("      and uploading to storage service...");
+          String uploaded_image_url = ImageStorage.uploadJpg(lp, urlOfImageToBeWatermarked);
+          System.out.println("    uploaded image now available at:");
+          System.out.println("      " + uploaded_image_url);
           System.out.println("  WmTrigger.create()...");
           WmTrigger tr = WmTrigger.create(lp, "My WmTrigger", new WmTrigger.Strength(10), new WmTrigger.Resolution(75), uploaded_image_url);
           System.out.println("    Trigger Name: \"" + tr.getName() + "\"");
@@ -214,7 +206,7 @@ public class LivePaperExample {
           for (String item : ln.getLinks().keySet())
             System.out.println("      " + item + ": " + ln.getLinks().get(item));
           System.out.println("  Downloading watermarked image...");
-          byte[] wmbytes = tr.downloadWatermarkedImage();
+          byte[] wmbytes = tr.downloadWatermarkedJpgImage();
           String wm_img_out = "image_watermark_" + sdf.format(Calendar.getInstance().getTime()) + ".jpg";
           FileOutputStream fos = new FileOutputStream(wm_img_out);
           fos.write(wmbytes);
@@ -232,7 +224,7 @@ public class LivePaperExample {
           tr = null;
           System.out.println();
         }
-        if ( testLists ) {
+        if (testLists) {
           System.out.println("Getting List of Trigger objects...");
           Map<String, Trigger> triggers = Trigger.list(lp);
           System.out.println("  Found " + triggers.keySet().size() + " triggers!");

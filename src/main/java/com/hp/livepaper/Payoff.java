@@ -7,66 +7,92 @@ import org.boon.json.JsonFactory;
 import com.hp.livepaper.LivePaperSession.Method;
 
 public class Payoff extends BaseObject {
-  public static final String API_URL = LivePaper.API_HOST + "payoffs";
-  public enum Type {
-    WEB_PAYOFF /* , RICH_PAYOFF; */, UNKNOWN;
-  } // TODO: support Rich Payoff
-  // public static methods
-  public static String getItemKey() {
-    return "payoff";
+  protected static final String API_URL = LivePaper.API_HOST + "payoffs";
+  protected static final String ITEM_KEY = "payoff";
+  protected static final String LIST_KEY = "payoffs";
+  public enum Type { WEB_PAYOFF, /* RICH_PAYOFF, */ UNINITIALIZED }
+  /**
+   * Returns a Map of all the Payoff objects for the given account.  The Map uses the Id of the object as the key.
+   * The value in the Map is the Payoff object itself.
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @return Returns a Map of all Payoff objects.
+   * @throws LivePaperException
+   */
+  @SuppressWarnings("unchecked")
+  public static Map<String, Payoff> list(LivePaperSession lp) throws LivePaperException {
+    Map<String, Payoff> payoffs = new HashMap<String, Payoff>();
+    Map<String, Object> listOfPayoffs = lp.rest_request(Payoff.API_URL, Method.GET);
+    for (Map<String, Object> payoffData : (List<Map<String, Object>>) listOfPayoffs.get(LIST_KEY)) {
+      Payoff tr = new Payoff(lp, payoffData);
+      payoffs.put(tr.getId(), tr);
+    }
+    return payoffs;
   }
-  public static String getListKey() {
-    return "payoffs";
-  }
-  // member fields
-  private String url = "";
-  private void setUrl(String url) {
-    this.url = url;
-  }
-  public String getUrl() {
-    return url;
-  }
-  private Type type = Type.UNKNOWN;
-  private void setType(Type type) {
-    this.type = type;
-  }
-  public Type getType() {
-    return type;
-  }
-  // Constructor
-  public Payoff(LivePaperSession lp, String name, Type type, String url) {
-    this.lp = lp;
-    setName(name);
-    setType(type);
-    setUrl(url);
-  }
-  public Payoff(LivePaperSession lp, Map<String, Object> map) {
-    this.assign_attributes(map);
-  }
+  /**
+   * Obtains a Payoff object, given the id of the object.
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param id is the identifier for an existing Payoff object.
+   * @return The Payoff object represented by the id is returned.
+   * @throws LivePaperException
+   */
   public static Payoff get(LivePaperSession lp, String id) throws LivePaperException {
     try {
       return new Payoff(lp, lp.rest_request(API_URL + "/" + id, Method.GET));
     }
     catch (LivePaperException e) {
-      throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(getItemKey()) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
+      throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
     }
   }
+  /**
+   * Creates a Payoff object via a REST API POST call to the Live Paper API
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param name is the name attribute to be given to the Link object.
+   * @param type indicates the Type of the Payoff to be created.
+   * @param url is the URL "payoff" that is (indirectly) associated with the Trigger (through the Link object)
+   * @return Returns a new Payoff object.
+   * @throws LivePaperException
+   */
   public static Payoff create(LivePaperSession lp, String name, Type type, String url) throws LivePaperException {
     return (new Payoff(lp, name, type, url)).save();
   }
-  // Overrides
+  public String  getUrl() {
+    return url;
+  }
+  public void    setUrl(String url) {
+    this.url = url;
+  }
+  public Type    getType() {
+    return type;
+  }
+  protected Payoff(LivePaperSession lp, String name, Type type, String url) {
+    this.lp = lp;
+    setName(name);
+    setType(type);
+    setUrl(url);
+  }
+  protected Payoff(LivePaperSession lp, Map<String, Object> map) {
+    this.assign_attributes(map);
+  }
+  protected void setType(Type type) {
+    this.type = type;
+  }
   @Override
   protected String api_url() {
     return API_URL;
   }
+  /**
+   * Create this object via the API by doing a POST
+   * @return
+   * @throws LivePaperException
+   */
   @Override
-  public Payoff save() throws LivePaperException {
+  protected Payoff save() throws LivePaperException {
     return (Payoff) super.save();
   }
   @Override
   protected BaseObject parse(Map<String, Object> responseMap) {
     @SuppressWarnings("unchecked")
-    Map<String, Object> data = (Map<String, Object>) responseMap.get(getItemKey());
+    Map<String, Object> data = (Map<String, Object>) responseMap.get(ITEM_KEY);
     assign_attributes(data);
     // send(present?(data[:richPayoff]) ? :parse_richpayoff : :parse_webpayoff, data) //TODO: Support Rich Payoff
     return this;
@@ -76,7 +102,7 @@ public class Payoff extends BaseObject {
     StringBuilder sb = new StringBuilder();
     if (getName().length() == 0)
       sb.append("name, ");
-    if (getType() == Type.UNKNOWN)
+    if (getType() == Type.UNINITIALIZED)
       sb.append("Type, ");
     if (getUrl().length() == 0)
       sb.append("Url, ");
@@ -86,14 +112,29 @@ public class Payoff extends BaseObject {
     }
   }
   @Override
-  protected Map<String, Object> update_body() {
-    return create_body();
+  protected void assign_attributes(Map<String, Object> data) {
+    super.assign_attributes(data);
+    setUrl((String) data.get("URL"));
+    //@formatter:off
+    /*{
+       id=e2lqC2WGS8a01MwbTmnSjg,
+       name=My Payoff
+       URL=http://www.hp.com,
+       dateCreated=2015-01-21T02:56:17.915+0000,
+       dateModified=2015-01-21T02:56:17.915+0000,
+       link=[
+         {href=https://www.livepaperapi.com/api/v1/payoffs/e2lqC2WGS8a01MwbTmnSjg,
+          rel=self},
+         {href=https://www.livepaperapi.com/analytics/v1/payoffs/e2lqC2WGS8a01MwbTmnSjg,
+         rel=analytics}]
+      }*/
+    //@formatter:on
   }
   @Override
   protected Map<String, Object> create_body() {
     Map<String, Object> payoff = new HashMap<String, Object>();
     switch (getType()) {
-      case UNKNOWN:
+      case UNINITIALIZED:
         throw new IllegalStateException("Payoff.create_body() cannot be called on an unitialized object (Type is still set to UNKNOWN)");
       case WEB_PAYOFF:
         payoff.put("name", getName());
@@ -120,32 +161,9 @@ public class Payoff extends BaseObject {
     return body;
   }
   @Override
-  protected void assign_attributes(Map<String, Object> data) {
-    super.assign_attributes(data);
-    setUrl((String) data.get("URL"));
-    //@formatter:off
-    /*{
-       id=e2lqC2WGS8a01MwbTmnSjg,
-       name=My Payoff
-       URL=http://www.hp.com,
-       dateCreated=2015-01-21T02:56:17.915+0000,
-       dateModified=2015-01-21T02:56:17.915+0000,
-       link=[
-         {href=https://www.livepaperapi.com/api/v1/payoffs/e2lqC2WGS8a01MwbTmnSjg,
-          rel=self},
-         {href=https://www.livepaperapi.com/analytics/v1/payoffs/e2lqC2WGS8a01MwbTmnSjg,
-         rel=analytics}]
-      }*/
-    //@formatter:on
+  protected Map<String, Object> update_body() {
+    return create_body();
   }
-  @SuppressWarnings("unchecked")
-  public static Map<String, Payoff> list(LivePaperSession lp) throws LivePaperException {
-    Map<String, Payoff> payoffs = new HashMap<String, Payoff>();
-    Map<String, Object> listOfPayoffs = lp.rest_request(Payoff.API_URL, Method.GET);
-    for (Map<String, Object> payoffData : (List<Map<String, Object>>) listOfPayoffs.get(getListKey())) {
-      Payoff tr = new Payoff(lp, payoffData);
-      payoffs.put(tr.getId(), tr);
-    }
-    return payoffs;
-  }
+  private String url = "";
+  private Type type = Type.UNINITIALIZED;
 }

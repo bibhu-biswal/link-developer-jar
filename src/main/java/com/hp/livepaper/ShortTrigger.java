@@ -5,29 +5,41 @@ import java.util.Map;
 import org.boon.json.JsonFactory;
 
 public class ShortTrigger extends Trigger {
-  private static String DEFAULT_SUBSCRIPTION = "month";
-  public String getShortUrl() {
-    return getLinks().get("shortURL");
-  }
-  public ShortTrigger(LivePaperSession lp, String name) {
-    this.lp = lp;
-    this.setName(name);
-  }
-  public ShortTrigger(LivePaperSession lp, Map<String, Object> map) {
-    this.lp = lp;
-    this.assign_attributes(map);
-  }
+  private static final String DEFAULT_SUBSCRIPTION = "month";
+  /**
+   * Creates a ShortTrigger object via a REST API POST call to the Live Paper API
+   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param name is the name attribute to be given to the ShortTrigger object.
+   * @return Returns a new ShortTrigger object.
+   * @throws LivePaperException
+   */
   public static ShortTrigger create(LivePaperSession lp, String name) throws LivePaperException {
     return (new ShortTrigger(lp, name)).save();
   }
+  public String getShortUrl() {
+    return getLinks().get("shortURL");
+  }
+  protected ShortTrigger(LivePaperSession lp, String name) {
+    this.lp = lp;
+    this.setName(name);
+  }
+  protected ShortTrigger(LivePaperSession lp, Map<String, Object> map) {
+    this.lp = lp;
+    this.assign_attributes(map);
+  }
+  /**
+   * Create this object via the API by doing a POST
+   * @return
+   * @throws LivePaperException
+   */
   @Override
-  public ShortTrigger save() throws LivePaperException {
+  protected ShortTrigger save() throws LivePaperException {
     return (ShortTrigger) super.save();
   }
   @Override
   protected ShortTrigger parse(Map<String, Object> responseMap) {
     @SuppressWarnings("unchecked")
-    Map<String, Object> data = (Map<String, Object>) responseMap.get(getItemKey());
+    Map<String, Object> data = (Map<String, Object>) responseMap.get(ITEM_KEY);
     assign_attributes(data);
     return this;
   }
@@ -35,20 +47,6 @@ public class ShortTrigger extends Trigger {
   protected void validate_attributes() {
     if (getName() == null)
       throw new IllegalArgumentException("Invalid state for this operation! (missing attribute: name)");
-  }
-  @Override
-  protected Map<String, Object> create_body() {
-    Map<String, Object> body = new HashMap<String, Object>();
-    Map<String, Object> trigger = new HashMap<String, Object>();
-    Map<String, Object> subscription = new HashMap<String, Object>();
-    body.put("trigger", trigger);
-    trigger.put("name", getName());
-    trigger.put("type", "shorturl");
-    subscription.put("package", DEFAULT_SUBSCRIPTION);
-    trigger.put("subscription", subscription);
-    @SuppressWarnings("unused")
-    String bodytxt = JsonFactory.create().writeValueAsString(body);
-    return body;
   }
   @Override
   protected void assign_attributes(Map<String, Object> data) {
@@ -76,5 +74,19 @@ public class ShortTrigger extends Trigger {
        typeFriendly=false
       }*/
     //@formatter:on
+  }
+  @Override
+  protected Map<String, Object> create_body() {
+    Map<String, Object> body = new HashMap<String, Object>();
+    Map<String, Object> trigger = new HashMap<String, Object>();
+    Map<String, Object> subscription = new HashMap<String, Object>();
+    body.put("trigger", trigger);
+    trigger.put("name", getName());
+    trigger.put("type", "shorturl");
+    subscription.put("package", DEFAULT_SUBSCRIPTION);
+    trigger.put("subscription", subscription);
+    @SuppressWarnings("unused")
+    String bodytxt = JsonFactory.create().writeValueAsString(body);
+    return body;
   }
 }
