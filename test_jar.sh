@@ -29,6 +29,8 @@ timeout_opts="-DPROPERTY_READ_TIMEOUT=10000 -DPROPERTY_CONNECT_TIMEOUT=10000"
 echo "${CYAN}Running Basic Test [com.hp.livepaper.example.LivePaperExample.main()]...${RESET}"
 java $timeout_opts $proxy_opts -cp $cp:$jar com.hp.livepaper.example.LivePaperExample || exit $?
 
+exit
+
 echo
 echo "${CYAN}Running Additional Tests...${RESET}"
 cd "../playground/lpapi_exemplar_java/"
