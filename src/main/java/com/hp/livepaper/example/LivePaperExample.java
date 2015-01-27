@@ -81,14 +81,32 @@ public class LivePaperExample {
           tr.setName(tr.getName() + " (renamed)");
           System.out.println("    ShortTrigger.update()...");
           tr.update();
+          System.out.println("    Confirming update() call...");
+          ShortTrigger tr2 = (ShortTrigger)Trigger.get(lp, tr.getId());
+          if (tr.getName() .equals (tr2.getName()))
+            System.out.println("      yes, update() did work.");
+          else
+            System.out.println("      NO! update() did NOT work!");
           System.out.println("    Payoff.setName()...");
           po.setName(po.getName() + " (renamed)");
           System.out.println("    Payoff.update()...");
           po.update();
+          System.out.println("    Confirming update() call...");
+          Payoff po2 = Payoff.get(lp, po.getId());
+          if (po.getName() .equals (po2.getName()))
+            System.out.println("      yes, update() did work.");
+          else
+            System.out.println("      NO! update() did NOT work!");
           System.out.println("    Link.setName()...");
           ln.setName(ln.getName() + " (renamed)");
           System.out.println("    Link.update()...");
           ln.update();
+          System.out.println("    Confirming update() call...");
+          Link ln2 = Link.get(lp, ln.getId());
+          if (ln.getName() .equals (ln2.getName()))
+            System.out.println("      yes, update() did work.");
+          else
+            System.out.println("      NO! update() did NOT work!");
           System.out.println("  Deleting Link...");
           String ID = ln.getId();
           ln.delete();

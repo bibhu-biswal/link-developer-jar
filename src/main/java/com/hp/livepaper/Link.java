@@ -19,13 +19,13 @@ public class Link extends BaseObject {
    */
   @SuppressWarnings("unchecked")
   public static Map<String, Link> list(LivePaperSession lp) throws LivePaperException {
-    Map<String, Link> links = new HashMap<String, Link>();
-    Map<String, Object> listOfLinks = lp.rest_request(Link.API_URL, Method.GET);
-    for (Map<String, Object> linkData : (List<Map<String, Object>>) listOfLinks.get(LIST_KEY)) {
-      Link tr = new Link(linkData);
-      links.put(tr.getId(), tr);
+    Map<String, Link> returnList = new HashMap<String, Link>();
+    Map<String, Object> list = lp.rest_request(API_URL, Method.GET);
+    for (Map<String, Object> data : (List<Map<String, Object>>) list.get(LIST_KEY)) {
+      Link item = new Link(lp, data);
+      returnList.put(item.getId(), item);
     }
-    return links;
+    return returnList;
   }
   /**
    * Obtains a Link object, given the id of the object.
@@ -34,9 +34,10 @@ public class Link extends BaseObject {
    * @return The Link object represented by the id is returned.
    * @throws LivePaperException
    */
+  @SuppressWarnings("unchecked")
   public static Link get(LivePaperSession lp, String id) throws LivePaperException {
     try {
-      return new Link(lp, id);
+      return new Link(lp, (Map<String,Object>)(lp.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY)));
     }
     catch (LivePaperException e) {
       throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
@@ -98,7 +99,8 @@ public class Link extends BaseObject {
     setTriggerId(triggerId);
     setPayoffId(payoffId);
   }
-  protected Link(Map<String, Object> map) {
+  protected Link(LivePaperSession lp, Map<String, Object> map) {
+    this.lp = lp;
     this.assign_attributes(map);
   }
   protected void setTrigger(Trigger trigger) {
@@ -126,9 +128,6 @@ public class Link extends BaseObject {
       throw new IllegalStateException("Link.setPayoffId(" + payoffId + ") called, but the Link already has a Payoff! [with id:" + payoff.getId() + "]");
     }
     this.payoffId = payoffId;
-  }
-  protected Link(LivePaperSession lp, String id) throws LivePaperException {
-    this(lp.rest_request(API_URL + "/" + id, Method.GET));
   }
   @Override
   protected String api_url() {

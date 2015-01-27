@@ -283,26 +283,14 @@ public class LivePaperSession {
         continue;
       }
     }
-    switch (method) {
-      case GET:
-        if (responseCode == 200) // 200: list/get object
-          return mapper.readValue(response.getEntity(String.class), Map.class);
-        // 404: fail to list/get non-existent object
-        break;
-      case PUT:
-        if (responseCode == 200) // 200: update object
-          return mapper.readValue(response.getEntity(String.class), Map.class);
-        break;
-      case POST:
-        if (responseCode == 201) // 201: created new object
-          return mapper.readValue(response.getEntity(String.class), Map.class);
-        break;
-      case DELETE:
-        if (responseCode == 204)
-          return null;
-        if (responseCode == 200) // 200: delete object
-          return null;
-        break;
+    if (method == Method.DELETE && responseCode == 204 ||
+        method == Method.DELETE && responseCode == 200    )
+      return null;
+    if (   method == Method.GET  && responseCode == 200
+        || method == Method.PUT  && responseCode == 200
+        || method == Method.POST && responseCode == 201 ) {
+      String responseStr = response.getEntity(String.class);
+      return mapper.readValue(responseStr, Map.class);
     }
     String message = htmlStripToH1(response.getEntity(String.class));
     throw new LivePaperException(responseCode + ": " + message + " (" + method + " " + url + ")");

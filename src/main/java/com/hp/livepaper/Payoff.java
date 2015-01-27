@@ -20,13 +20,13 @@ public class Payoff extends BaseObject {
    */
   @SuppressWarnings("unchecked")
   public static Map<String, Payoff> list(LivePaperSession lp) throws LivePaperException {
-    Map<String, Payoff> payoffs = new HashMap<String, Payoff>();
-    Map<String, Object> listOfPayoffs = lp.rest_request(Payoff.API_URL, Method.GET);
-    for (Map<String, Object> payoffData : (List<Map<String, Object>>) listOfPayoffs.get(LIST_KEY)) {
-      Payoff tr = new Payoff(lp, payoffData);
-      payoffs.put(tr.getId(), tr);
+    Map<String, Payoff> returnList = new HashMap<String, Payoff>();
+    Map<String, Object> list = lp.rest_request(API_URL, Method.GET);
+    for (Map<String, Object> data : (List<Map<String, Object>>) list.get(LIST_KEY)) {
+      Payoff item = new Payoff(lp, data);
+      returnList.put(item.getId(), item);
     }
-    return payoffs;
+    return returnList;
   }
   /**
    * Obtains a Payoff object, given the id of the object.
@@ -35,9 +35,10 @@ public class Payoff extends BaseObject {
    * @return The Payoff object represented by the id is returned.
    * @throws LivePaperException
    */
+  @SuppressWarnings("unchecked")
   public static Payoff get(LivePaperSession lp, String id) throws LivePaperException {
     try {
-      return new Payoff(lp, lp.rest_request(API_URL + "/" + id, Method.GET));
+      return new Payoff(lp, (Map<String,Object>)(lp.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY)));
     }
     catch (LivePaperException e) {
       throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
@@ -71,6 +72,7 @@ public class Payoff extends BaseObject {
     setUrl(url);
   }
   protected Payoff(LivePaperSession lp, Map<String, Object> map) {
+    this.lp = lp;
     this.assign_attributes(map);
   }
   protected void setType(Type type) {

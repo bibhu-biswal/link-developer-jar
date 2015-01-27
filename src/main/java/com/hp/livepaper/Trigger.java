@@ -35,9 +35,10 @@ public abstract class Trigger extends BaseObject {
    * @return The Trigger object represented by the id is returned.
    * @throws LivePaperException
    */
+  @SuppressWarnings("unchecked")
   public static Trigger get(LivePaperSession lp, String id) throws LivePaperException {
     try {
-      return create(lp, lp.rest_request(API_URL + "/" + id, Method.GET));
+      return create(lp, (Map<String,Object>)lp.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY));
     }
     catch (LivePaperException e) {
       throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
