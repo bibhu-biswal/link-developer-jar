@@ -92,11 +92,10 @@ public class Payoff extends BaseObject {
     return (Payoff) super.save();
   }
   @Override
-  protected BaseObject parse(Map<String, Object> responseMap) {
+  protected Payoff parse(Map<String, Object> responseMap) {
     @SuppressWarnings("unchecked")
     Map<String, Object> data = (Map<String, Object>) responseMap.get(ITEM_KEY);
     assign_attributes(data);
-    // send(present?(data[:richPayoff]) ? :parse_richpayoff : :parse_webpayoff, data) //TODO: Support Rich Payoff
     return this;
   }
   @Override
@@ -116,6 +115,12 @@ public class Payoff extends BaseObject {
   @Override
   protected void assign_attributes(Map<String, Object> data) {
     super.assign_attributes(data);
+    if ( data.get("richPayoff") != null )
+      assign_attributes_rich_payoff(data);
+    assign_attributes_web_payoff(data);
+  }
+  protected void assign_attributes_web_payoff(Map<String, Object> data) {
+    setType(Type.WEB_PAYOFF);
     setUrl((String) data.get("URL"));
     //@formatter:off
     /*{
@@ -132,35 +137,50 @@ public class Payoff extends BaseObject {
       }*/
     //@formatter:on
   }
+  protected void assign_attributes_rich_payoff(Map<String, Object> data) {
+    // TODO: handle richPayoff data
+    throw new UnsupportedOperationException("Rich Payoff objects are not yet supported!");
+    //setType(Type.RICH_PAYOFF);
+    //data = setType(Type.valueOf((String)data.get("richPayoff")));
+  }
   @Override
   protected Map<String, Object> create_body() {
-    Map<String, Object> payoff = new HashMap<String, Object>();
     switch (getType()) {
+      case WEB_PAYOFF:
+        return create_web_payoff_body();
+/*    case RICH_PAYOFF:  //TODO: Support Rich Payoff
+        return create_richweb_payoff_body();*/
       case UNINITIALIZED:
         throw new IllegalStateException("Payoff.create_body() cannot be called on an unitialized object (Type is still set to UNKNOWN)");
-      case WEB_PAYOFF:
-        payoff.put("name", getName());
-        payoff.put("URL", getUrl());
-        /*
-         * case RICH_PAYOFF: //TODO: Support Rich Payoff
-         * //import javax.xml.bind.DatatypeConverter;
-         * Map<String, Object> richPayoffData = new HashMap<String, Object>();
-         * richPayoffData.put("content-type", getDataType());
-         * String data64 = DatatypeConverter.printBase64Binary((getData()).getBytes("UTF-8"));
-         * richPayoffData.put("data", JsonFactory.create().writeValueAsString(data64)); // not sure about that jsonfactory call...
-         * Map<String, Object> richPayoffBody = new HashMap<String, Object>();
-         * richPayoffBody.put("version", "1");
-         * richPayoffBody.put("private", richPayoffData);
-         * richPayoffBody.put("public", getUrl());
-         * body.put("name", getName());
-         * body.put("richPayoff", richPayoffBody);
-         */
     }
+    return null;
+  }
+  protected Map<String, Object> create_web_payoff_body() {
+    Map<String, Object> payoff = new HashMap<String, Object>();
+    payoff.put("name", getName());
+    payoff.put("URL", getUrl());
     Map<String, Object> body = new HashMap<String, Object>();
     body.put("payoff", payoff);
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
     return body;
+  }
+  protected Map<String, Object> create_rich_payoff_body() {
+    throw new UnsupportedOperationException("Rich Payoff objects are not yet supported!");
+    /*
+     * case RICH_PAYOFF: //TODO: Support Rich Payoff
+     * //import javax.xml.bind.DatatypeConverter;
+     * Map<String, Object> richPayoffData = new HashMap<String, Object>();
+     * richPayoffData.put("content-type", getDataType());
+     * String data64 = DatatypeConverter.printBase64Binary((getData()).getBytes("UTF-8"));
+     * richPayoffData.put("data", JsonFactory.create().writeValueAsString(data64)); // not sure about that jsonfactory call...
+     * Map<String, Object> richPayoffBody = new HashMap<String, Object>();
+     * richPayoffBody.put("version", "1");
+     * richPayoffBody.put("private", richPayoffData);
+     * richPayoffBody.put("public", getUrl());
+     * body.put("name", getName());
+     * body.put("richPayoff", richPayoffBody);
+     */
   }
   @Override
   protected Map<String, Object> update_body() {

@@ -147,7 +147,7 @@ public class Link extends BaseObject {
     return (Link) super.save();
   }
   @Override
-  protected BaseObject parse(Map<String, Object> responseMap) {
+  protected Link parse(Map<String, Object> responseMap) {
     @SuppressWarnings("unchecked")
     Map<String, Object> data = (Map<String, Object>) responseMap.get(ITEM_KEY);
     assign_attributes(data);

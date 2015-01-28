@@ -4,7 +4,7 @@
   <groupId>com.hp</groupId>
   <artifactId>livepaper</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.19</version>
+  <version>0.0.20</version>
   <name>LivePaper</name>
   <url>http://maven.apache.org</url>
   <dependencies>
