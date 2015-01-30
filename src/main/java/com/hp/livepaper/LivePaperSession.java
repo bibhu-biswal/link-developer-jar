@@ -62,7 +62,7 @@ public class LivePaperSession {
    * @throws LivePaperException
    */
   public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForJpgImageToBeWatermarked, String imageUrlForPayoff) throws LivePaperException {
-    String    stored_image_url = ImageStorage.uploadJpg(this, urlForJpgImageToBeWatermarked);
+    String    stored_image_url = ImageStorage.uploadJpgFromUrl(this, urlForJpgImageToBeWatermarked);
     WmTrigger tr = WmTrigger.create(this, name, strength, resolution, stored_image_url);
     Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
     Link.create(this, name, tr, po);
@@ -264,14 +264,14 @@ public class LivePaperSession {
         responseCode = response.getStatus();
         if (responseCode == 401) { // authentication problem
           if (++tries >= maxTries)
-            throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
+            throw new LivePaperException("Unable to complete REST \""+method+"\" call! (after " + (tries - 1) + " tries)");
           continue;
         }
         break;
       }
       catch (ClientHandlerException e) {
         if (++tries >= maxTries)
-          throw new LivePaperException("Unable to create object with POST! (after " + (tries - 1) + " tries)");
+          throw new LivePaperException("Unable to complete REST \""+method+"\" call! (after " + (tries - 1) + " tries)");
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {

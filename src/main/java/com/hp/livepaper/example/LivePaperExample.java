@@ -40,10 +40,12 @@ public class LivePaperExample {
         System.out.println("Authenticating with LivePaperSession...");
         LivePaperSession lp = LivePaperSession.create(id, secret);
         System.out.println();
-        if (true) testShortUrl(lp);
-        if (true) testQrCode(lp);
-        if (true) testWatermark(lp);
-        if (true) testLists(lp);
+        boolean t = true;
+        boolean f = false;
+        if (t) testShortUrl(lp);
+        if (t) testQrCode(lp);
+        if (t) testWatermark(lp);
+        if (t) testLists(lp);
         System.out.println("All done with example!");
       }
     }
@@ -207,13 +209,20 @@ public class LivePaperExample {
     System.out.println();
   }
   private static void testWatermark(LivePaperSession lp) throws LivePaperException, IOException {
+    @SuppressWarnings("unused")
+    String imageToBeWatermarkedLocalFile  = "Watermarks_20_Euro.jpg";
+    String imageToBeWatermarkedUrl        = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
+    String imageToBeWatermarked           = imageToBeWatermarkedUrl;
     System.out.println("Creating Watermarked Image...");
-    String urlOfImageToBeWatermarked = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
     System.out.println("  Image.upload()...");
-    System.out.println("    downloading user image from:");
-    System.out.println("      " + urlOfImageToBeWatermarked);
+    System.out.println("    obtaining user image from:");
+    System.out.println("      " + imageToBeWatermarked);
     System.out.println("      and uploading to storage service...");
-    String uploaded_image_url = ImageStorage.uploadJpg(lp, urlOfImageToBeWatermarked);
+    String uploaded_image_url = null;
+    if (imageToBeWatermarked.contains("http"))
+      uploaded_image_url = ImageStorage.uploadJpgFromUrl(lp, imageToBeWatermarked);
+    else
+      uploaded_image_url = ImageStorage.uploadJpgFromFile(lp, imageToBeWatermarked);
     System.out.println("    uploaded image now available at:");
     System.out.println("      " + uploaded_image_url);
     System.out.println("  WmTrigger.create()...");
@@ -270,13 +279,24 @@ public class LivePaperExample {
   private static void testLists(LivePaperSession lp) throws LivePaperException {
     System.out.println("Testing list() methods...");
     System.out.println("  (note: previously created objects were already deleted so you won't see them here)");
-
+    System.out.println("  Getting List of Link objects...");
+    Map<String, Link> links = Link.list(lp);
+    System.out.println("    Found " + links.keySet().size() + " links.");
+    for (String linkId : links.keySet()) {
+      Link ln = links.get(linkId);
+      System.out.println("      id: \"" + ln.getId()+"\"");
+      System.out.println("        name: \"" + ln.getName() + "\"");
+      System.out.println("          linked Trigger Id: \"" + ln.getTriggerId() + "\"");
+      System.out.println("          linked Payoff Id: \"" + ln.getPayoffId() + "\"");
+    }
+    System.out.println();
     System.out.println("  Getting List of Trigger objects...");
     Map<String, Trigger> triggers = Trigger.list(lp);
     System.out.println("    Found " + triggers.keySet().size() + " triggers.");
     for (String triggerId : triggers.keySet()) {
       Trigger tr = triggers.get(triggerId);
-      System.out.println("      \"" + tr.getName() + "\" [" + tr.getClass().getName() + "]");
+      System.out.println("      id: \"" + tr.getId()+"\"");
+      System.out.println("        name: \"" + tr.getName() + "\", type: " + tr.getClass().getName());
     }
     System.out.println();
     System.out.println("  Getting List of Payoff objects...");
@@ -284,15 +304,9 @@ public class LivePaperExample {
     System.out.println("    Found " + payoffs.keySet().size() + " payoffs.");
     for (String payoffId : payoffs.keySet()) {
       Payoff po = payoffs.get(payoffId);
-      System.out.println("      \"" + po.getName() + "\"");
-    }
-    System.out.println();
-    System.out.println("  Getting List of Link objects...");
-    Map<String, Link> links = Link.list(lp);
-    System.out.println("    Found " + links.keySet().size() + " links.");
-    for (String linkId : links.keySet()) {
-      Link ln = links.get(linkId);
-      System.out.println("      \"" + ln.getName() + "\"");
+      System.out.println("      id: \"" + po.getId()+"\"");
+      System.out.println("        name: \"" + po.getName() + "\"");
+      System.out.println("        type: \"" + po.getType()+"\"");
     }
     System.out.println();
   }

@@ -1,5 +1,6 @@
 package com.hp.livepaper;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 import org.boon.json.JsonFactory;
@@ -23,12 +24,23 @@ public class ImageStorage {
    * @return A string holding the URL of the image on the Live Paper Storage service.
    * @throws LivePaperException
    */
-  public static String uploadJpg(LivePaperSession lp, String imageUrl) throws LivePaperException {
+  public static String uploadJpgFromUrl(LivePaperSession lp, String imageUrl) throws LivePaperException {
     if (imageUrl == null || imageUrl.length() == 0)
       throw new java.lang.IllegalArgumentException("image_url cannot be null or blank");
     if ( imageIsAlreadyOnLivePaperStorageService(imageUrl) )
       return imageUrl;
-    byte[] bytes = download(null, Type.JPEG, imageUrl);
+    byte[] imageBytes = download(null, Type.JPEG, imageUrl);
+    return uploadBytes(lp, imageBytes);
+  }
+  public static String uploadJpgFromFile(LivePaperSession lp, String filename) throws LivePaperException, IOException {
+    if (filename == null || filename.length() == 0)
+      throw new java.lang.IllegalArgumentException("filename cannot be null or blank");
+    FileInputStream fis = new FileInputStream(filename);
+    byte[] imageBytes = LivePaperSession.inputStreamToByteArray(fis);
+    fis.close();
+    return uploadBytes(lp, imageBytes);
+  }
+  protected static String uploadBytes(LivePaperSession lp, byte[] imageBytes) throws LivePaperException {
     int maxTries = LivePaperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
@@ -37,7 +49,7 @@ public class ImageStorage {
         ClientResponse response = webResource.
             header("Content-Type", "image/jpg").
             header("Authorization", lp.getLppAccessToken()).
-            post(ClientResponse.class, bytes);
+            post(ClientResponse.class, imageBytes);
         return response.getHeaders().getFirst("location");
       }
       catch (ClientHandlerException e) {

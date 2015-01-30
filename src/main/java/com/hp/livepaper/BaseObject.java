@@ -84,6 +84,19 @@ public abstract class BaseObject {
   protected abstract BaseObject parse(Map<String, Object> responseMap);
   @SuppressWarnings("unchecked")
   protected void assign_attributes(Map<String, Object> map) {
+    //@formatter:off
+    /*{
+       id=e2lqC2WGS8a01MwbTmnSjg,
+       name=My Payoff
+       dateCreated=2015-01-21T02:56:17.915+0000,
+       dateModified=2015-01-21T02:56:17.915+0000,
+       link=[
+         {href=https://www.livepaperapi.com/api/v1/payoffs/e2lqC2WGS8a01MwbTmnSjg,
+          rel=self},
+         {href=https://www.livepaperapi.com/analytics/v1/payoffs/e2lqC2WGS8a01MwbTmnSjg,
+         rel=analytics}]
+      }*/
+    //@formatter:on
     setId((String) map.get("id"));
     setName((String) map.get("name"));
     setDateCreated((String) map.get("dateCreated"));
