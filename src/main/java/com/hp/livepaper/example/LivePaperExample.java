@@ -40,22 +40,27 @@ public class LivePaperExample {
         secret = args[1];
       } else {
         String key_file = "mykeys.txt";
-        System.out.println("  keys not found as command line arguments... reading from \""+key_file+"\"...");
-        Scanner scan = new Scanner(new File(key_file));
-        id = scan.nextLine();
-        secret = scan.nextLine();
-        scan.close();
+        System.out.println("  reading keys from \""+key_file+"\" (since not found on command line)...");
+        try {
+          Scanner scan = new Scanner(new File(key_file));
+          id = scan.nextLine();
+          secret = scan.nextLine();
+          scan.close();
+        }
+        catch (IOException e) {
+          System.err.println("    ERROR trying to read keys from \""+key_file+"\"...");
+          throw e;
+        }
       }
       if (true) {
         LivePaperSession lp = LivePaperSession.create(id, secret);
-        System.out.println();
         boolean t = true;
         boolean f = false;
         if (t) testShortUrl(lp);
         if (t) testQrCode(lp);
         if (t) testWatermark(lp);
         if (t) testLists(lp);
-        System.out.println("All done with example!");
+        System.out.println("All done with tests!");
       }
     }
     catch (Exception e) {
@@ -112,7 +117,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     tr.setState(Trigger.State.DISABLED);
     tr.update();
-
+    
     System.out.println("    Payoff.setName()...");
     po.setName(po.getName() + " (renamed)");
     System.out.println("    Payoff.update()...");
@@ -127,7 +132,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     po2.setUrl("http://shopping.hp.com");
     po2.update();
-
+    
     System.out.println("    Link.setName()...");
     ln.setName(ln.getName() + " (renamed)");
     System.out.println("    Link.update()...");
@@ -142,7 +147,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     ln.setName(ln.getName() + " (renamed again)");
     ln.update();
-    
+
     System.out.println("  Deleting Link...");
     String ID = ln.getId();
     ln.delete();
