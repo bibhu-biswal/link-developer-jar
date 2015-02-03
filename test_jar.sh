@@ -8,7 +8,6 @@ if [ "$HTTP_PROXY" ];then
   proxy_opts="${HTTP_PROXY#http://}"
   proxy_opts="-Dhttps.proxyHost=${proxy_opts%:*} -Dhttps.proxyPort=${proxy_opts##*:}"
   echo "${CYAN}Defining https.proxyHost/Port for java...${RESET}"
-  echo "${CYAN}  (note that image uploads for watermarking seem to fail behind a proxy)${RESET}"
 fi
 
 echo "${CYAN}Checking version...${RESET}"

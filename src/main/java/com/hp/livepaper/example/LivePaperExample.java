@@ -31,13 +31,22 @@ public class LivePaperExample {
    */
   public static void main(String[] args) {
     try {
-      String key_file = "mykeys.txt";
-      Scanner scan = new Scanner(new File(key_file));
-      String id = scan.nextLine();
-      String secret = scan.nextLine();
-      scan.close();
+      System.out.println("Authenticating with LivePaperSession...");
+      String id = "";
+      String secret = "";
+      if ( args.length == 2 ) {
+        System.out.println("  using keys from command line...");
+        id = args[0];
+        secret = args[1];
+      } else {
+        String key_file = "mykeys.txt";
+        System.out.println("  keys not found as command line arguments... reading from \""+key_file+"\"...");
+        Scanner scan = new Scanner(new File(key_file));
+        id = scan.nextLine();
+        secret = scan.nextLine();
+        scan.close();
+      }
       if (true) {
-        System.out.println("Authenticating with LivePaperSession...");
         LivePaperSession lp = LivePaperSession.create(id, secret);
         System.out.println();
         boolean t = true;
@@ -103,7 +112,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     tr.setState(Trigger.State.DISABLED);
     tr.update();
-    
+
     System.out.println("    Payoff.setName()...");
     po.setName(po.getName() + " (renamed)");
     System.out.println("    Payoff.update()...");
@@ -118,7 +127,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     po2.setUrl("http://shopping.hp.com");
     po2.update();
-    
+
     System.out.println("    Link.setName()...");
     ln.setName(ln.getName() + " (renamed)");
     System.out.println("    Link.update()...");
@@ -133,7 +142,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     ln.setName(ln.getName() + " (renamed again)");
     ln.update();
-
+    
     System.out.println("  Deleting Link...");
     String ID = ln.getId();
     ln.delete();
