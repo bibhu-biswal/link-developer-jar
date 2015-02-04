@@ -1,4 +1,4 @@
-package com.hp.livepaper.example;
+package com.hp.linkdeveloper.example;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -7,31 +7,31 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Scanner;
-import com.hp.livepaper.ImageStorage;
-import com.hp.livepaper.Link;
-import com.hp.livepaper.LivePaperException;
-import com.hp.livepaper.LivePaperSession;
-import com.hp.livepaper.Payoff;
-import com.hp.livepaper.QrTrigger;
-import com.hp.livepaper.ShortTrigger;
-import com.hp.livepaper.Trigger;
-import com.hp.livepaper.WmTrigger;
+import com.hp.linkdeveloper.ImageStorage;
+import com.hp.linkdeveloper.Link;
+import com.hp.linkdeveloper.LinkDeveloperException;
+import com.hp.linkdeveloper.LinkDeveloperSession;
+import com.hp.linkdeveloper.Payoff;
+import com.hp.linkdeveloper.QrTrigger;
+import com.hp.linkdeveloper.ShortTrigger;
+import com.hp.linkdeveloper.Trigger;
+import com.hp.linkdeveloper.WmTrigger;
 
-public class LivePaperExample {
+public class LinkDeveloperExample {
   /*
    * When main() is run, this example client will run a number of tests
-   * against the Live Paper service.  The test will expect to find your "client
+   * against the Link Developer service.  The test will expect to find your "client
    * id" and "secret id" credentials (and nothing else) on successive lines
    * of a "mykeys.txt" file in the local directory.
    *
    * To obtain your credentials, you will need to create an account at the
-   * LivePaper API site (https://link.livepaperdeveloper.com), which will
+   * LinkDeveloper API site (https://link.LinkDeveloperdeveloper.com), which will
    * then show the credentials to you which you can then copy intto your local
    * "mykeys.txt" file.
    */
   public static void main(String[] args) {
     try {
-      System.out.println("Authenticating with LivePaperSession...");
+      System.out.println("Authenticating with LinkDeveloperSession...");
       String id = "";
       String secret = "";
       if ( args.length == 2 ) {
@@ -53,7 +53,7 @@ public class LivePaperExample {
         }
       }
       if (true) {
-        LivePaperSession lp = LivePaperSession.create(id, secret);
+        LinkDeveloperSession lp = LinkDeveloperSession.create(id, secret);
         boolean t = true;
         boolean f = false;
         if (t) testShortUrl(lp);
@@ -69,7 +69,7 @@ public class LivePaperExample {
       System.exit(1);
     }
   }
-  private static void testShortUrl(LivePaperSession lp) throws LivePaperException {
+  private static void testShortUrl(LinkDeveloperSession lp) throws LinkDeveloperException {
     System.out.println("Creating Short URL...");
     System.out.println("  ShortTrigger.create()...");
     ShortTrigger tr = ShortTrigger.create(lp, "My ShortTrigger");
@@ -117,7 +117,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     tr.setState(Trigger.State.DISABLED);
     tr.update();
-    
+
     System.out.println("    Payoff.setName()...");
     po.setName(po.getName() + " (renamed)");
     System.out.println("    Payoff.update()...");
@@ -132,7 +132,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     po2.setUrl("http://shopping.hp.com");
     po2.update();
-    
+
     System.out.println("    Link.setName()...");
     ln.setName(ln.getName() + " (renamed)");
     System.out.println("    Link.update()...");
@@ -147,7 +147,7 @@ public class LivePaperExample {
     System.out.println("      post-get update()...");
     ln.setName(ln.getName() + " (renamed again)");
     ln.update();
-
+    
     System.out.println("  Deleting Link...");
     String ID = ln.getId();
     ln.delete();
@@ -157,7 +157,7 @@ public class LivePaperExample {
       // should not be able to get the deleted object now
       ln = Link.get(lp, ID);
     }
-    catch (LivePaperException e) {
+    catch (LinkDeveloperException e) {
       if (!e.getMessage().contains("HTTP Status 404 - Not Found")) {
         System.err.println("rethrowing");
         throw e;
@@ -172,7 +172,7 @@ public class LivePaperExample {
     tr = null;
     System.out.println();
   }
-  private static void testQrCode(LivePaperSession lp) throws LivePaperException, IOException {
+  private static void testQrCode(LinkDeveloperSession lp) throws LinkDeveloperException, IOException {
     System.out.println("Creating QR Code...");
     System.out.println("  QrTrigger.create()...");
     QrTrigger tr = QrTrigger.create(lp, "My QrTrigger");
@@ -222,7 +222,7 @@ public class LivePaperExample {
     tr = null;
     System.out.println();
   }
-  private static void testWatermark(LivePaperSession lp) throws LivePaperException, IOException {
+  private static void testWatermark(LinkDeveloperSession lp) throws LinkDeveloperException, IOException {
     @SuppressWarnings("unused")
     String imageToBeWatermarkedLocalFile  = "Watermarks_20_Euro.jpg";
     String imageToBeWatermarkedUrl        = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
@@ -290,7 +290,7 @@ public class LivePaperExample {
     tr = null;
     System.out.println();
   }
-  private static void testLists(LivePaperSession lp) throws LivePaperException {
+  private static void testLists(LinkDeveloperSession lp) throws LinkDeveloperException {
     System.out.println("Testing list() methods...");
     System.out.println("  (note: previously created objects were already deleted so you won't see them here)");
     System.out.println("  Getting List of Link objects...");

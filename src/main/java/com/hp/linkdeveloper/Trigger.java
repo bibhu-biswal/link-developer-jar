@@ -1,25 +1,25 @@
-package com.hp.livepaper;
+package com.hp.linkdeveloper;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.boon.json.JsonFactory;
-import com.hp.livepaper.LivePaperSession.Method;
+import com.hp.linkdeveloper.LinkDeveloperSession.Method;
 
 public abstract class Trigger extends BaseObject {
-  protected static final String API_URL = LivePaper.API_HOST + "triggers";
+  protected static final String API_URL = LinkDeveloper.API_HOST + "triggers";
   protected static final String ITEM_KEY = "trigger";
   protected static final String LIST_KEY = "triggers";
   public enum State { ACTIVE, DISABLED, INACTIVE, UNINITIALIZED };
   /**
    * Returns a Map of all the Trigger objects for the given account.  The Map uses the Id of the object as the key.
    * The value in the Map is the Trigger object itself.
-   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
    * @return Returns a Map of all Link objects.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
   @SuppressWarnings("unchecked")
-  public static Map<String, Trigger> list(LivePaperSession lp) throws LivePaperException {
+  public static Map<String, Trigger> list(LinkDeveloperSession lp) throws LinkDeveloperException {
     Map<String, Trigger> triggers = new HashMap<String, Trigger>();
     Map<String, Object> listOfTriggers = lp.rest_request(Trigger.API_URL, Method.GET);
     for (Map<String, Object> triggerData : (List<Map<String, Object>>) listOfTriggers.get(LIST_KEY)) {
@@ -30,18 +30,18 @@ public abstract class Trigger extends BaseObject {
   }
   /**
    * Obtains a Trigger object, given the id of the object.
-   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
    * @param id is the identifier for an existing Trigger object.
    * @return The Trigger object represented by the id is returned.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
   @SuppressWarnings("unchecked")
-  public static Trigger get(LivePaperSession lp, String id) throws LivePaperException {
+  public static Trigger get(LinkDeveloperSession lp, String id) throws LinkDeveloperException {
     try {
       return create(lp, (Map<String,Object>)lp.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY));
     }
-    catch (LivePaperException e) {
-      throw new LivePaperException("Cannot create " + LivePaperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
+    catch (LinkDeveloperException e) {
+      throw new LinkDeveloperException("Cannot create " + LinkDeveloperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
     }
   }
   public State  getState() {
@@ -68,12 +68,12 @@ public abstract class Trigger extends BaseObject {
   }
   /**
    * Factory method to create a subtype of Trigger.
-   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
    * @param map a Map object, containing all the data needed to instantiate a new Trigger object
    * of the specified type.
    * @return Returns a Trigger object, of a concrete subtype class.
    */
-  protected static Trigger create(LivePaperSession lp, Map<String, Object> map) {
+  protected static Trigger create(LinkDeveloperSession lp, Map<String, Object> map) {
     String type = (String) map.get("type");
     if (type.equals("shorturl"))
       return new ShortTrigger(lp, map);

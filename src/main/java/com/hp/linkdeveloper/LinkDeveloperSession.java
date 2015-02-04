@@ -1,4 +1,4 @@
-package com.hp.livepaper;
+package com.hp.linkdeveloper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,16 +27,16 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
-public class LivePaperSession {
-  public static LivePaperSession create(String clientId, String secretId) {
-    return new LivePaperSession(clientId, secretId);
+public class LinkDeveloperSession {
+  public static LinkDeveloperSession create(String clientId, String secretId) {
+    return new LinkDeveloperSession(clientId, secretId);
   }
   /**
    * Shortens the url passed as the argument.
    * @param longURL The URL that needs to be shortened.
    * @return The shortened URL or null if passed string is null, or if access is unauthorized, or in case of server error.
    */
-  public String createShortUrl(String name, String url) throws LivePaperException {
+  public String createShortUrl(String name, String url) throws LinkDeveloperException {
     ShortTrigger tr = ShortTrigger.create(this, name);
     Payoff       po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
     Link.create(this, name, tr, po);
@@ -47,7 +47,7 @@ public class LivePaperSession {
    * @param url The URL that needs to be QR-coded.
    * @return The byte representation of the QR code or null if passed string is null, or if access is unauthorized, or in case of server error.
    */
-  public byte[] createQrCode(String name, String url, int width) throws LivePaperException {
+  public byte[] createQrCode(String name, String url, int width) throws LinkDeveloperException {
     QrTrigger tr = QrTrigger.create(this, name);
     Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, url);
     Link.create(this, name, tr, po);
@@ -56,12 +56,12 @@ public class LivePaperSession {
   /**
    * Returns a byte representation of the watermarked JPEG image that encodes the passed URL.
    * @param imageLoc The the URL where the image to be watermarked is hosted (Note that if the image
-   * is not being hosted on the Live Paper Storage service, then the image will be copied to Live Paper Storage)
+   * is not being hosted on the Link Developer Storage service, then the image will be copied to Link Developer Storage)
    * @param url The URL to be encoded in the watermarked image.
    * @return The byte array containing the watermarked image.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForJpgImageToBeWatermarked, String imageUrlForPayoff) throws LivePaperException {
+  public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForJpgImageToBeWatermarked, String imageUrlForPayoff) throws LinkDeveloperException {
     String    stored_image_url = ImageStorage.uploadJpgFromUrl(this, urlForJpgImageToBeWatermarked);
     WmTrigger tr = WmTrigger.create(this, name, strength, resolution, stored_image_url);
     Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
@@ -99,31 +99,32 @@ public class LivePaperSession {
    * (using the clientID and secretID passed to the create() factory method).  The access token will be cached
    * after that, and the cached value will be returned by this method.   Since access tokens eventually expire,
    * the token returned here is NOT guaranteed to be valid all all times.  Users of the token should call
-   * resetLppAccessToken() when the token is seen to be invalid.  This will ensure that future calls to this
+   * resetAccessToken() when the token is seen to be invalid.  This will ensure that future calls to this
    * method will obtain a new access token.
    * @return the API access token.
+   * @throws LinkDeveloperException
    */
-  public String getLppAccessToken() {
-    int maxTries = LivePaperSession.getNetworkErrorRetryCount();
+  public String getAccessToken() throws LinkDeveloperException {
+    int maxTries = LinkDeveloperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
       try {
-        if (lpp_access_token.length() > 0)
-          return lpp_access_token;
+        if (access_token.length() > 0)
+          return access_token;
         String body = "grant_type=client_credentials&scope=all";
-        Builder webResource = createWebResource(LivePaper.API_HOST_AUTH);
+        Builder webResource = createWebResource(LinkDeveloper.API_HOST_AUTH);
         ClientResponse response = webResource.
             header("Content-Type", "application/x-www-form-urlencoded").
             accept("application/json").
-            header("Authorization", getLppBasicAuth()).
+            header("Authorization", getBasicAuth()).
             post(ClientResponse.class, body);
         int responseCode = response.getStatus();
         if (responseCode == 200) {
           ObjectMapper mapper = JsonFactory.create();
           @SuppressWarnings("unchecked")
           Map<String, String> ResponseMap = mapper.readValue(response.getEntity(String.class), Map.class);
-          lpp_access_token = "Bearer " + ResponseMap.get("accessToken");
-          return lpp_access_token;
+          access_token = "Bearer " + ResponseMap.get("accessToken");
+          return access_token;
         }
         if (tries > maxTries) {
           System.out.println(responseCode);
@@ -133,11 +134,11 @@ public class LivePaperSession {
       }
       catch (ClientHandlerException e) {
         if (++tries >= maxTries)
-          throw e;
+          throw new LinkDeveloperException("Unable to authenticate and obtain access token ("+e.getMessage()+")", e);
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
-          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
+          Thread.sleep(LinkDeveloperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException unused) {
           throw e;
@@ -148,20 +149,20 @@ public class LivePaperSession {
   }
   /**
    * Allows "erasing" the existing access token.  Useful when the access token is known to have expired,
-   * and the user wants to force getLppAccessToken() calls to obtain a new access token.
+   * and the user wants to force getAccessToken() calls to obtain a new access token.
    */
-  public void resetLppAccessToken() {
-    lpp_access_token = ""; // a new token will be obtained on the next call to getLppAccessToken()
+  public void resetAccessToken() {
+    access_token = ""; // a new token will be obtained on the next call to getAccessToken()
   }
-  protected LivePaperSession(String clientID, String secret) {
+  protected LinkDeveloperSession(String clientID, String secret) {
     if (clientID == null || secret == null)
       throw new IllegalArgumentException("Null arguments not accepted.");
     if (clientID.length() == 0 || secret.length() == 0)
       throw new IllegalArgumentException("Blank arguments not accepted.");
-    lpp_basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(StandardCharsets.UTF_8));
+    basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(StandardCharsets.UTF_8));
   }
   protected static Builder createWebResource(String location) {
-    return createWebResourceUnTagged(location).header("x_user_info", "app=live_paper_jar_v" + Version.JAR_VERSION);
+    return createWebResourceUnTagged(location).header("x_user_info", "app=link_developer_jar_v" + Version.JAR_VERSION);
   }
   protected static Builder createWebResourceUnTagged(String location) {
     disableCertificateValidation();
@@ -215,14 +216,13 @@ public class LivePaperSession {
     bos.flush();
     return bos.toByteArray();
   }
-  protected Map<String, Object> rest_request(String url, Method method) throws LivePaperException {
+  protected Map<String, Object> rest_request(String url, Method method) throws LinkDeveloperException {
     return rest_request(url, method, new HashMap<String, Object>());
   }
   @SuppressWarnings("unchecked")
-  protected Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws LivePaperException {
-    // TODO: support "x_user_info: app=live_paper_jar" (so that API can track the source of the API calls)
+  protected Map<String, Object> rest_request(String url, Method method, Map<String, Object> bodyMap) throws LinkDeveloperException {
     int responseCode = -1;
-    int maxTries = LivePaperSession.getNetworkErrorRetryCount();
+    int maxTries = LinkDeveloperSession.getNetworkErrorRetryCount();
     int tries = 0;
     ObjectMapper mapper = JsonFactory.create();
     String body = mapper.writeValueAsString(bodyMap);
@@ -236,46 +236,46 @@ public class LivePaperSession {
             response = webResource.
             header("Content-Type", "application/json").
             accept("application/json").
-            header("Authorization", getLppAccessToken()).
+            header("Authorization", getAccessToken()).
             get(ClientResponse.class);
             break;
           case PUT:
             response = webResource.
             header("Content-Type", "application/json").
             accept("application/json").
-            header("Authorization", getLppAccessToken()).
+            header("Authorization", getAccessToken()).
             put(ClientResponse.class, body);
             break;
           case POST:
             response = webResource.
             header("Content-Type", "application/json").
             accept("application/json").
-            header("Authorization", getLppAccessToken()).
+            header("Authorization", getAccessToken()).
             post(ClientResponse.class, body);
             break;
           case DELETE:
             response = webResource.
             header("Content-Type", "application/json").
             accept("application/json").
-            header("Authorization", getLppAccessToken()).
+            header("Authorization", getAccessToken()).
             delete(ClientResponse.class, body);
             break;
         }
         responseCode = response.getStatus();
         if (responseCode == 401) { // authentication problem
           if (++tries >= maxTries)
-            throw new LivePaperException("Unable to complete REST \""+method+"\" call! (after " + (tries - 1) + " tries)");
+            throw new LinkDeveloperException("Unable to complete REST \""+method+"\" call! (after " + (tries - 1) + " tries)");
           continue;
         }
         break;
       }
       catch (ClientHandlerException e) {
         if (++tries >= maxTries)
-          throw new LivePaperException("Unable to complete REST \""+method+"\" call! (after " + (tries - 1) + " tries)");
+          throw new LinkDeveloperException("Unable to complete REST \""+method+"\" call! (after " + (tries - 1) + " tries)");
         System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
         System.err.println("  (error was \"" + e.getMessage() + "\")");
         try {
-          Thread.sleep(LivePaperSession.getNetworkErrorRetrySleepPeriod());
+          Thread.sleep(LinkDeveloperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException e1) {
           throw e;
@@ -293,13 +293,13 @@ public class LivePaperSession {
       return mapper.readValue(responseStr, Map.class);
     }
     String message = htmlStripToH1(response.getEntity(String.class));
-    throw new LivePaperException(responseCode + ": " + message + " (" + method + " " + url + ")");
+    throw new LinkDeveloperException(responseCode + ": " + message + " (" + method + " " + url + ")");
   }
   protected static String capitalize(String line) {
     return Character.toUpperCase(line.charAt(0)) + line.substring(1);
   }
   /**
-   * LivePaper REST API calls sometimes return HTML with the important message stored in the H1 tag.
+   * LinkDeveloper REST API calls sometimes return HTML with the important message stored in the H1 tag.
    * @param possibleHtmlEncodedRestMessage the REST error message that is possibly encoded in HTML.
    * @return the original string (if it was not HTML encoded), or the contents of the H1 tag if encoded.
    */
@@ -313,11 +313,11 @@ public class LivePaperSession {
   protected enum Method {
     GET, PUT, POST, DELETE;
   }
-  private String getLppBasicAuth() {
-    return lpp_basic_auth;
+  private String getBasicAuth() {
+    return basic_auth;
   }
-  private transient String lpp_access_token = "";
-  private transient String lpp_basic_auth   = "";
+  private transient String access_token = "";
+  private transient String basic_auth   = "";
   private static int network_error_retry_sleep_period = 0;
   private static int network_error_retry_count = 0;
 }

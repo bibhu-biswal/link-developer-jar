@@ -13,7 +13,7 @@ workspace=$HOME/eclipse/lpp
 if [ ! -d $workspace ];then
   echo "ERROR: did not find directory \"$workspace\""
   echo "       That directory is the presumed 'Eclipse workspace' which will hold"
-  echo "       references to both the LivePaper project and the LivePaperJarClient"
+  echo "       references to both the LinkDeveloper project and the LinkDeveloperExample"
   echo "       project.  Please create that directory, and re-run this script."
  #mkdir -p $workspace
 fi

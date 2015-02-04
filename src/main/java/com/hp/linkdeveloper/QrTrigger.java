@@ -1,4 +1,4 @@
-package com.hp.livepaper;
+package com.hp.linkdeveloper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,50 +7,50 @@ import org.boon.json.JsonFactory;
 public class QrTrigger extends Trigger {
   private static final String DEFAULT_SUBSCRIPTION = "month";
   /**
-   * Creates a QrTrigger object via a REST API POST call to the Live Paper API
-   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * Creates a QrTrigger object via a REST API POST call to the Link Developer API
+   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the QrTrigger object.
    * @return Returns a new QrTrigger object.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public static QrTrigger create(LivePaperSession lp, String name) throws LivePaperException {
+  public static QrTrigger create(LinkDeveloperSession lp, String name) throws LinkDeveloperException {
     return (new QrTrigger(lp, name)).save();
   }
   /**
    * Download the QR Code image (at the API's default image size)
    * @return byte array holding the contents of the image ready to be saved to disk, or displayed, etc.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public byte[] downloadQrCode() throws LivePaperException {
+  public byte[] downloadQrCode() throws LinkDeveloperException {
     return downloadQrCode(0);
   }
   /**
    * Download the QR Code image, at a specific size
    * @param width must be greater than zero. Any other integer value will be ignored (and API's default size will be used).
    * @return byte array holding the contents of the image ready to be saved to disk, or displayed, etc.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public byte[] downloadQrCode(int width) throws LivePaperException {
+  public byte[] downloadQrCode(int width) throws LinkDeveloperException {
     String params = "";
     if (width > 0)
       params = "?width=" + width;
     return ImageStorage.download(lp, this, ImageStorage.Type.PNG, params);
   }
-  protected QrTrigger(LivePaperSession lp, String name) {
+  protected QrTrigger(LinkDeveloperSession lp, String name) {
     this.lp = lp;
     this.setName(name);
   }
-  protected QrTrigger(LivePaperSession lp, Map<String, Object> map) {
+  protected QrTrigger(LinkDeveloperSession lp, Map<String, Object> map) {
     this.lp = lp;
     this.assign_attributes(map);
   }
   /**
    * Create this object via the API by doing a POST
    * @return
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
   @Override
-  protected QrTrigger save() throws LivePaperException {
+  protected QrTrigger save() throws LinkDeveloperException {
     return (QrTrigger) super.save();
   }
   @Override

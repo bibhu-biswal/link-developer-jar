@@ -1,4 +1,4 @@
-package com.hp.livepaper;
+package com.hp.linkdeveloper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,33 +7,33 @@ import org.boon.json.JsonFactory;
 public class ShortTrigger extends Trigger {
   private static final String DEFAULT_SUBSCRIPTION = "month";
   /**
-   * Creates a ShortTrigger object via a REST API POST call to the Live Paper API
-   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * Creates a ShortTrigger object via a REST API POST call to the Link Developer API
+   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the ShortTrigger object.
    * @return Returns a new ShortTrigger object.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public static ShortTrigger create(LivePaperSession lp, String name) throws LivePaperException {
+  public static ShortTrigger create(LinkDeveloperSession lp, String name) throws LinkDeveloperException {
     return (new ShortTrigger(lp, name)).save();
   }
   public String getShortUrl() {
     return getLinks().get("shortURL");
   }
-  protected ShortTrigger(LivePaperSession lp, String name) {
+  protected ShortTrigger(LinkDeveloperSession lp, String name) {
     this.lp = lp;
     this.setName(name);
   }
-  protected ShortTrigger(LivePaperSession lp, Map<String, Object> map) {
+  protected ShortTrigger(LinkDeveloperSession lp, Map<String, Object> map) {
     this.lp = lp;
     this.assign_attributes(map);
   }
   /**
    * Create this object via the API by doing a POST
    * @return
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
   @Override
-  protected ShortTrigger save() throws LivePaperException {
+  protected ShortTrigger save() throws LinkDeveloperException {
     return (ShortTrigger) super.save();
   }
   @Override

@@ -1,84 +1,88 @@
-# LivePaper
+# Link Developer JAR
 
-Provides a Java interface to the Live Paper service by HP for creating
+Provides a Java interface to the "Link" service by HP for creating
 watermarked images, QR codes, and mobile-friendly shortened URLs.
 
-## Installation
+## Building
 
-This git repo contains the source for the LivePaper JAR.  You can
+This git repo contains the source for the Link Developer JAR.  You can
 build the JAR with "mvn package".  Maven is configured (in pom.xml) to
-use Java 1.8 and you will get an error "invalid target release: 1.8"
-if maven cannot find Java 1.8.  To fix that problem, you can use the
-JAVA_HOME variable to tell Maven where your Java 1.8 is installed (see
-script/create_jar_with_maven.sh and script/set_JAVA_HOME).
+use Java 1.8.
+
+If you are not using an earlier version of Java than 1.8, you will get
+an error "invalid target release: 1.8" from maven.  If you have Java
+1.8 installed, and need to tell maven where it is, use the JAVA_HOME
+variable.  (edit the script script/set_JAVA_HOME and then load
+it with "source script/set_JAVA_HOME").
 
 The latest Maven build of the jar is stored in the target/ directory.
 (You may also download the latest released version of the JAR from
-link.livepaper.com ["LivePaper
+www.linkcreationstudio.com's ["Link Developer
 JAR"](https://www.linkcreationstudio.com/api/libraries/java/) page).
 
-## Usage As Documented on LivePaper API Site
+## Usage As Documented on Link Developer API Site
 
 For an example of using the latest released version of the JAR, you
-can refer to the ["LivePaper
+can refer to the sample code snippets on the ["Link Developer
 JAR"](https://www.linkcreationstudio.com/api/libraries/java/) page.
 
 ## Example Code In the JAR
 
-The JAR itself includes a main() that you can run which will create a
-short url, qr code and watermarked image, and output information about
-them as they are created.  To run it, just download LivePaper's
-dependent jars as shown, and run the main() method of
-com.hp.livepaper.LivePaperExample, as shown:
+The JAR itself includes an example class that you can inspect or run
+to see how to create Trigger, Payoff and Link objects to create short
+urls, qr codes and watermarked images.  To run it, just download
+LinkDeveloper's dependent jars as shown, and run the main() method of
+com.hp.linkdeveloper.example.LinkDeveloperExample, as shown:
 
 ```shell
 mvn dependency:resolve
 cp="$HOME/.m2/repository/com/sun/jersey/jersey-client/1.18.3/jersey-client-1.18.3.jar"
 cp="$cp:$HOME/.m2/repository/com/sun/jersey/jersey-core/1.18.3/jersey-core-1.18.3.jar"
 cp="$cp:$HOME/.m2/repository/io/fastjson/boon/0.24/boon-0.24.jar"
-java -cp $cp:./target/LivePaper-X.Y.Z.jar com.hp.livepaper.LivePaperExample
+java -cp $cp:./target/linkdeveloper-X.Y.Z.jar com.hp.linkdeveloper.example.LinkDeveloperExample
 ```
 
 ## Usage Overview
 
 ### Authenticate
 
-The Live Paper JAR requires authentication with id and secret. Obtain
-your credentials from the registration link above.
+The Link Developer JAR requires authentication with two keys: your id key
+and secret key.  These are shown in the green box on the [Link Developer Authentication](https://www.linkcreationstudio.com/api/doc/auth/) page.
+
 
 ```java
-LivePaper lp = LivePaper.auth("your client id", "your client secret");
+LinkDeveloper ld = LinkDeveloper.auth("your client id", "your client secret");
 ```
 
 ### Shortening URLs
 
 ```java
-String short_url = lp.shorten("http://www.google.com");
+String short_url = ld.shorten("http://www.google.com");
 ```
 
 ### Generating QR Codes
 
 ```java
-byte[] qrbytes = lp.qr_bytes("http://www.amazon.com");
+byte[] qrbytes = ld.qr_bytes("http://www.amazon.com");
 FileOutputStream fos = new FileOutputStream("qrcode.png");
 fos.write(qrbytes);
 fos.close();
 ```
 
 > Note: Version 1 of the API only supports returning QR Code
-> bytes. Version 2 may host publicly accessible QR images.
+> bytes. A future version may host publicly accessible QR images.
 
 ### Watermarking Images
 
 ```java
-byte[] wm_bytes = lp.watermark_bytes("http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg","http://www.hp.com");
+byte[] wm_bytes = ld.watermark_bytes("http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg","http://www.hp.com");
 FileOutputStream fos = new FileOutputStream("wm.jpg");
 fos.write(wm_bytes);
 fos.close();
 ```
 
 > Note: Version 1 of the API only supports returning image
-> bytes. Version 2 may host publicly accessible images.
+> bytes. A future version may host publicly accessible images.
 
 ## Development
 
@@ -89,7 +93,7 @@ the Maven pom.xml.
 ### Working in Eclipse
 
 To make this project visible in Eclipse, open the Eclipse workspace in
-which you will do development with Live Paper.  If the project is not
+which you will do development with Link Developer.  If the project is not
 visible, add it with:
 
 * Eclipse menu: 'File=>Import=>Maven/Existing Maven Projects'
@@ -100,4 +104,4 @@ have an 'Run/Debug configurations' in Eclipse's menus.  Add one with:
 
 * Eclipse menu 'Run => Debug Configurations'
   * Add this 'Java Application' configuration with 
-    * add one named 'LivePaperExample.main', with main class of 'com.hp.livepaper.LivePaperExample'
+    * add one named 'LinkDeveloperExample.main', with main class of 'com.hp.linkdeveloper.example.LinkDeveloperExample'

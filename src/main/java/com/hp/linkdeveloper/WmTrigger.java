@@ -1,4 +1,4 @@
-package com.hp.livepaper;
+package com.hp.linkdeveloper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,24 +7,24 @@ import org.boon.json.JsonFactory;
 public class WmTrigger extends Trigger {
   private static final String DEFAULT_SUBSCRIPTION = "month";
   /**
-   * Creates a WmTrigger object via a REST API POST call to the Live Paper API
-   * @param lp is the LivePaperSession (which holds the access token for the user)
+   * Creates a WmTrigger object via a REST API POST call to the Link Developer API
+   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the WmTrigger object.
    * @param watermark strength value for watermarked image. The allowed value ranges from 1 to 10.
    * @param resolution is the watermark resolution value for the watermarked image.  The allowed value ranges from 1 to 2400.
    * @param urlForImageToBeWatermarked is the URL of the image that you want to be watermarked.
    * @return Returns a new WmTrigger object.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public static WmTrigger create(LivePaperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked) throws LivePaperException {
+  public static WmTrigger create(LinkDeveloperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked) throws LinkDeveloperException {
     return (new WmTrigger(lp, name, strength, resolution, urlForImageToBeWatermarked)).save();
   }
   /**
    * Allows downloading of the watermarked image that this Trigger represents.
    * @return Returns the byte array containing the image data.
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public byte[]     downloadWatermarkedJpgImage() throws LivePaperException {
+  public byte[]     downloadWatermarkedJpgImage() throws LinkDeveloperException {
     return ImageStorage.download(lp, this, ImageStorage.Type.JPEG);
   }
   public Strength   getStrength() {
@@ -97,24 +97,24 @@ public class WmTrigger extends Trigger {
     }
     private int strength = 0;
   }
-  protected WmTrigger(LivePaperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) {
+  protected WmTrigger(LinkDeveloperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) {
     this.lp = lp;
     this.setName(name);
     this.setImageUrl(imageUrl);
     this.setStrength(strength);
     this.setResolution(resolution);
   }
-  protected WmTrigger(LivePaperSession lp, Map<String, Object> map) {
+  protected WmTrigger(LinkDeveloperSession lp, Map<String, Object> map) {
     this.lp = lp;
     this.assign_attributes(map);
   }
   /**
    * Create this object via the API by doing a POST
    * @return
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
   @Override
-  protected WmTrigger save() throws LivePaperException {
+  protected WmTrigger save() throws LinkDeveloperException {
     return (WmTrigger) super.save();
   }
   @Override

@@ -1,9 +1,9 @@
-package com.hp.livepaper;
+package com.hp.linkdeveloper;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.hp.livepaper.LivePaperSession.Method;
+import com.hp.linkdeveloper.LinkDeveloperSession.Method;
 
 public abstract class BaseObject {
   public String  getId() {
@@ -30,24 +30,24 @@ public abstract class BaseObject {
   /**
    * Update this object via the API by doing a PUT
    * @return
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public BaseObject update() throws LivePaperException {
+  public BaseObject update() throws LinkDeveloperException {
     if (getId().length() == 0)
       throw new IllegalStateException("update() method cannot be called on an unititialized " + this.getClass().getName() + " object!");
     validate_attributes();
     Map<String, Object> response = lp.rest_request(api_url()+ "/" + getId(), Method.PUT, update_body());
     if (response == null)
-      throw new LivePaperException("Unable to update new " + this.getClass().getName() + " object!");
+      throw new LinkDeveloperException("Unable to update new " + this.getClass().getName() + " object!");
     parse(response);
     return this;
   }
   /**
    * Delete this object via the API by doing a DELETE
    * @return
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  public void delete() throws LivePaperException {
+  public void delete() throws LinkDeveloperException {
     if (getId().length() == 0)
       throw new IllegalStateException("delete() method cannot be called on an unititialized " + this.getClass().getName() + " object!");
     lp.rest_request(this.api_url() + "/" + getId(), Method.DELETE);
@@ -56,14 +56,14 @@ public abstract class BaseObject {
   /**
    * Create this object via the API by doing a POST
    * @return
-   * @throws LivePaperException
+   * @throws LinkDeveloperException
    */
-  protected BaseObject save() throws LivePaperException {
+  protected BaseObject save() throws LinkDeveloperException {
     validate_attributes();
     if (getId().length() == 0) {
       Map<String, Object> response = lp.rest_request(api_url(), Method.POST, create_body());
       if (response == null) // this can happen if you are at your limit in creating resources
-        throw new LivePaperException("Unable to create new " + this.getClass().getName() + " object!");
+        throw new LinkDeveloperException("Unable to create new " + this.getClass().getName() + " object!");
       parse(response);
     }
     return this;
@@ -104,7 +104,7 @@ public abstract class BaseObject {
     for (Map<String, String> list : (List<Map<String, String>>) map.get("link"))
       getLinks().put(list.get("rel"), list.get("href"));
   }
-  protected LivePaperSession lp = null;
+  protected LinkDeveloperSession lp = null;
   private String id = "";
   private String name = "";
   private String date_created = "";

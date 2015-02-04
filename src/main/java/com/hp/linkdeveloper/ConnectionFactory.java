@@ -1,4 +1,4 @@
-package com.hp.livepaper;
+package com.hp.linkdeveloper;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
