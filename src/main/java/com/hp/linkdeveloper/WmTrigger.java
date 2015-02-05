@@ -8,7 +8,7 @@ public class WmTrigger extends Trigger {
   private static final String DEFAULT_SUBSCRIPTION = "month";
   /**
    * Creates a WmTrigger object via a REST API POST call to the Link Developer API
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the WmTrigger object.
    * @param watermark strength value for watermarked image. The allowed value ranges from 1 to 10.
    * @param resolution is the watermark resolution value for the watermarked image.  The allowed value ranges from 1 to 2400.
@@ -16,8 +16,8 @@ public class WmTrigger extends Trigger {
    * @return Returns a new WmTrigger object.
    * @throws LinkDeveloperException
    */
-  public static WmTrigger create(LinkDeveloperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked) throws LinkDeveloperException {
-    return (new WmTrigger(lp, name, strength, resolution, urlForImageToBeWatermarked)).save();
+  public static WmTrigger create(LinkDeveloperSession ld, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked) throws LinkDeveloperException {
+    return (new WmTrigger(ld, name, strength, resolution, urlForImageToBeWatermarked)).save();
   }
   /**
    * Allows downloading of the watermarked image that this Trigger represents.
@@ -25,7 +25,7 @@ public class WmTrigger extends Trigger {
    * @throws LinkDeveloperException
    */
   public byte[]     downloadWatermarkedJpgImage() throws LinkDeveloperException {
-    return ImageStorage.download(lp, this, ImageStorage.Type.JPEG);
+    return ImageStorage.download(ld, this, ImageStorage.Type.JPEG);
   }
   public Strength   getStrength() {
     return strength;
@@ -97,15 +97,15 @@ public class WmTrigger extends Trigger {
     }
     private int strength = 0;
   }
-  protected WmTrigger(LinkDeveloperSession lp, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) {
-    this.lp = lp;
+  protected WmTrigger(LinkDeveloperSession ld, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) {
+    this.ld = ld;
     this.setName(name);
     this.setImageUrl(imageUrl);
     this.setStrength(strength);
     this.setResolution(resolution);
   }
-  protected WmTrigger(LinkDeveloperSession lp, Map<String, Object> map) {
-    this.lp = lp;
+  protected WmTrigger(LinkDeveloperSession ld, Map<String, Object> map) {
+    this.ld = ld;
     this.assign_attributes(map);
   }
   /**

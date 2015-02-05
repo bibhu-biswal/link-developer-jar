@@ -16,31 +16,31 @@ public class Payoff extends BaseObject {
   /**
    * Returns a Map of all the Payoff objects for the given account.  The Map uses the Id of the object as the key.
    * The value in the Map is the Payoff object itself.
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @return Returns a Map of all Payoff objects.
    * @throws LinkDeveloperException
    */
   @SuppressWarnings("unchecked")
-  public static Map<String, Payoff> list(LinkDeveloperSession lp) throws LinkDeveloperException {
+  public static Map<String, Payoff> list(LinkDeveloperSession ld) throws LinkDeveloperException {
     Map<String, Payoff> returnList = new HashMap<String, Payoff>();
-    Map<String, Object> list = lp.rest_request(API_URL, Method.GET);
+    Map<String, Object> list = ld.rest_request(API_URL, Method.GET);
     for (Map<String, Object> data : (List<Map<String, Object>>) list.get(LIST_KEY)) {
-      Payoff item = new Payoff(lp, data);
+      Payoff item = new Payoff(ld, data);
       returnList.put(item.getId(), item);
     }
     return returnList;
   }
   /**
    * Obtains a Payoff object, given the id of the object.
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param id is the identifier for an existing Payoff object.
    * @return The Payoff object represented by the id is returned.
    * @throws LinkDeveloperException
    */
   @SuppressWarnings("unchecked")
-  public static Payoff get(LinkDeveloperSession lp, String id) throws LinkDeveloperException {
+  public static Payoff get(LinkDeveloperSession ld, String id) throws LinkDeveloperException {
     try {
-      return new Payoff(lp, (Map<String,Object>)(lp.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY)));
+      return new Payoff(ld, (Map<String,Object>)(ld.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY)));
     }
     catch (LinkDeveloperException e) {
       throw new LinkDeveloperException("Cannot create " + LinkDeveloperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
@@ -48,15 +48,15 @@ public class Payoff extends BaseObject {
   }
   /**
    * Creates a Payoff object via a REST API POST call to the Link Developer API
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the Link object.
    * @param type indicates the Type of the Payoff to be created.
    * @param url is the URL "payoff" that is (indirectly) associated with the Trigger (through the Link object)
    * @return Returns a new Payoff object.
    * @throws LinkDeveloperException
    */
-  public static Payoff create(LinkDeveloperSession lp, String name, Type type, String url) throws LinkDeveloperException {
-    return (new Payoff(lp, name, type, url)).save();
+  public static Payoff create(LinkDeveloperSession ld, String name, Type type, String url) throws LinkDeveloperException {
+    return (new Payoff(ld, name, type, url)).save();
   }
   public String  getUrl() {
     return url;
@@ -101,14 +101,14 @@ public class Payoff extends BaseObject {
   public void setRichPayoffData(Map<String, Object> richPayoffData) {
     this.richPayoffData = richPayoffData;
   }
-  protected Payoff(LinkDeveloperSession lp, String name, Type type, String url) {
-    this.lp = lp;
+  protected Payoff(LinkDeveloperSession ld, String name, Type type, String url) {
+    this.ld = ld;
     setName(name);
     setType(type);
     setUrl(url);
   }
-  protected Payoff(LinkDeveloperSession lp, Map<String, Object> map) {
-    this.lp = lp;
+  protected Payoff(LinkDeveloperSession ld, Map<String, Object> map) {
+    this.ld = ld;
     this.assign_attributes(map);
   }
   protected void setType(Type type) {

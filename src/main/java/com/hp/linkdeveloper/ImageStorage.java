@@ -19,28 +19,28 @@ public class ImageStorage {
    * Since you can only watermark images stored at the Link Developer Storage service, this method exists to allow
    * you to upload an images to the Storage ervice.  It returns a new URL, for the location of the copied image
    * which now resides at the Storage service.
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param imageUrl The URL of the JPEG image that you want to upload to the by Link Developer Storage service.
    * @return A string holding the URL of the image on the Link Developer Storage service.
    * @throws LinkDeveloperException
    */
-  public static String uploadJpgFromUrl(LinkDeveloperSession lp, String imageUrl) throws LinkDeveloperException {
+  public static String uploadJpgFromUrl(LinkDeveloperSession ld, String imageUrl) throws LinkDeveloperException {
     if (imageUrl == null || imageUrl.length() == 0)
       throw new java.lang.IllegalArgumentException("image_url cannot be null or blank");
     if ( imageIsAlreadyOnLinkDeveloperStorageService(imageUrl) )
       return imageUrl;
     byte[] imageBytes = download(null, Type.JPEG, imageUrl);
-    return uploadBytes(lp, imageBytes);
+    return uploadBytes(ld, imageBytes);
   }
-  public static String uploadJpgFromFile(LinkDeveloperSession lp, String filename) throws LinkDeveloperException, IOException {
+  public static String uploadJpgFromFile(LinkDeveloperSession ld, String filename) throws LinkDeveloperException, IOException {
     if (filename == null || filename.length() == 0)
       throw new java.lang.IllegalArgumentException("filename cannot be null or blank");
     FileInputStream fis = new FileInputStream(filename);
     byte[] imageBytes = LinkDeveloperSession.inputStreamToByteArray(fis);
     fis.close();
-    return uploadBytes(lp, imageBytes);
+    return uploadBytes(ld, imageBytes);
   }
-  protected static String uploadBytes(LinkDeveloperSession lp, byte[] imageBytes) throws LinkDeveloperException {
+  protected static String uploadBytes(LinkDeveloperSession ld, byte[] imageBytes) throws LinkDeveloperException {
     int maxTries = LinkDeveloperSession.getNetworkErrorRetryCount();
     int tries = 0;
     while (true) {
@@ -48,7 +48,7 @@ public class ImageStorage {
         Builder webResource = LinkDeveloperSession.createWebResource(LinkDeveloper.API_HOST_STORAGE);
         ClientResponse response = webResource.
             header("Content-Type", "image/jpg").
-            header("Authorization", lp.getAccessToken()).
+            header("Authorization", ld.getAccessToken()).
             post(ClientResponse.class, imageBytes);
         return response.getHeaders().getFirst("location");
       }
@@ -72,7 +72,7 @@ public class ImageStorage {
    * Returns an image from the Link Developer Storage service.  This may be a non-watermarked image (that you
    * previously uploaded with uploadJpg()).  Or it may be a watermarked version of an image you previously
    * uploaded with uploadJpg().   Or it may be a QR Code image that you are downloading.
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user).  If downloading from
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user).  If downloading from
    * a URL that is not backed by Link Developer, leave this null, to indicate that the download call does not
    * need a Link Developer authentication header.
    * @param trigger A Trigger object (which internally knows the URL from which to download it's image)
@@ -81,14 +81,14 @@ public class ImageStorage {
    * @return the byte array containing the image
    * @throws LinkDeveloperException
    */
-  public static byte[] download(LinkDeveloperSession lp, Trigger trigger, Type type) throws LinkDeveloperException {
-    return download(lp, trigger, type, "");
+  public static byte[] download(LinkDeveloperSession ld, Trigger trigger, Type type) throws LinkDeveloperException {
+    return download(ld, trigger, type, "");
   }
   /**
    * Returns an image from the Link Developer Storage service.  This may be a non-watermarked image (that you
    * previously uploaded with uploadJpg()).  Or it may be a watermarked version of an image you previously
    * uploaded with uploadJpg().   Or it may be a QR Code image that you are downloading.
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user).  If downloading from
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user).  If downloading from
    * a URL that is not backed by Link Developer, leave this null, to indicate that the download call does not
    * need a Link Developer authentication header.
    * @param trigger A Trigger object (which internally knows the URL from which to download it's image)
@@ -98,11 +98,11 @@ public class ImageStorage {
    * @return the byte array containing the image
    * @throws LinkDeveloperException
    */
-  public static byte[] download(LinkDeveloperSession lp, Trigger trigger, Type type, String params) throws LinkDeveloperException {
+  public static byte[] download(LinkDeveloperSession ld, Trigger trigger, Type type, String params) throws LinkDeveloperException {
     String imageUrl = trigger.getLinks().get("image")+params;
-    return download(lp, type, imageUrl);
+    return download(ld, type, imageUrl);
   }
-  protected static byte[] download(LinkDeveloperSession lp, Type type, String imageUrl) throws LinkDeveloperException {
+  protected static byte[] download(LinkDeveloperSession ld, Type type, String imageUrl) throws LinkDeveloperException {
     String imageType = "image/"+type.toString().toLowerCase();
     int maxTries = LinkDeveloperSession.getNetworkErrorRetryCount();
     int tries = 0;
@@ -110,8 +110,8 @@ public class ImageStorage {
       try {
         Builder builder = LinkDeveloperSession.createWebResource(imageUrl);
         builder.accept(imageType);
-        if ( lp != null )
-          builder.header("Authorization", lp.getAccessToken());
+        if ( ld != null )
+          builder.header("Authorization", ld.getAccessToken());
         ClientResponse response = builder.get(ClientResponse.class);
         if (response.getStatus() != 200) {
           @SuppressWarnings("unchecked")

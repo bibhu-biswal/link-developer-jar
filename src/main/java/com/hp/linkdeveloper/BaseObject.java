@@ -36,7 +36,7 @@ public abstract class BaseObject {
     if (getId().length() == 0)
       throw new IllegalStateException("update() method cannot be called on an unititialized " + this.getClass().getName() + " object!");
     validate_attributes();
-    Map<String, Object> response = lp.rest_request(api_url()+ "/" + getId(), Method.PUT, update_body());
+    Map<String, Object> response = ld.rest_request(api_url()+ "/" + getId(), Method.PUT, update_body());
     if (response == null)
       throw new LinkDeveloperException("Unable to update new " + this.getClass().getName() + " object!");
     parse(response);
@@ -50,7 +50,7 @@ public abstract class BaseObject {
   public void delete() throws LinkDeveloperException {
     if (getId().length() == 0)
       throw new IllegalStateException("delete() method cannot be called on an unititialized " + this.getClass().getName() + " object!");
-    lp.rest_request(this.api_url() + "/" + getId(), Method.DELETE);
+    ld.rest_request(this.api_url() + "/" + getId(), Method.DELETE);
     setId("");
   }
   /**
@@ -61,7 +61,7 @@ public abstract class BaseObject {
   protected BaseObject save() throws LinkDeveloperException {
     validate_attributes();
     if (getId().length() == 0) {
-      Map<String, Object> response = lp.rest_request(api_url(), Method.POST, create_body());
+      Map<String, Object> response = ld.rest_request(api_url(), Method.POST, create_body());
       if (response == null) // this can happen if you are at your limit in creating resources
         throw new LinkDeveloperException("Unable to create new " + this.getClass().getName() + " object!");
       parse(response);
@@ -104,7 +104,7 @@ public abstract class BaseObject {
     for (Map<String, String> list : (List<Map<String, String>>) map.get("link"))
       getLinks().put(list.get("rel"), list.get("href"));
   }
-  protected LinkDeveloperSession lp = null;
+  protected LinkDeveloperSession ld = null;
   private String id = "";
   private String name = "";
   private String date_created = "";

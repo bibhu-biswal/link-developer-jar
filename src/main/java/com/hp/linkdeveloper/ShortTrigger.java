@@ -8,23 +8,23 @@ public class ShortTrigger extends Trigger {
   private static final String DEFAULT_SUBSCRIPTION = "month";
   /**
    * Creates a ShortTrigger object via a REST API POST call to the Link Developer API
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the ShortTrigger object.
    * @return Returns a new ShortTrigger object.
    * @throws LinkDeveloperException
    */
-  public static ShortTrigger create(LinkDeveloperSession lp, String name) throws LinkDeveloperException {
-    return (new ShortTrigger(lp, name)).save();
+  public static ShortTrigger create(LinkDeveloperSession ld, String name) throws LinkDeveloperException {
+    return (new ShortTrigger(ld, name)).save();
   }
   public String getShortUrl() {
     return getLinks().get("shortURL");
   }
-  protected ShortTrigger(LinkDeveloperSession lp, String name) {
-    this.lp = lp;
+  protected ShortTrigger(LinkDeveloperSession ld, String name) {
+    this.ld = ld;
     this.setName(name);
   }
-  protected ShortTrigger(LinkDeveloperSession lp, Map<String, Object> map) {
-    this.lp = lp;
+  protected ShortTrigger(LinkDeveloperSession ld, Map<String, Object> map) {
+    this.ld = ld;
     this.assign_attributes(map);
   }
   /**

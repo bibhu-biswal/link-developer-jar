@@ -53,13 +53,13 @@ public class LinkDeveloperExample {
         }
       }
       if (true) {
-        LinkDeveloperSession lp = LinkDeveloperSession.create(id, secret);
+        LinkDeveloperSession ld = LinkDeveloperSession.create(id, secret);
         boolean t = true;
         boolean f = false;
-        if (t) testShortUrl(lp);
-        if (t) testQrCode(lp);
-        if (t) testWatermark(lp);
-        if (t) testLists(lp);
+        if (t) testShortUrl(ld);
+        if (t) testQrCode(ld);
+        if (t) testWatermark(ld);
+        if (t) testLists(ld);
         System.out.println("All done with tests!");
       }
     }
@@ -69,10 +69,10 @@ public class LinkDeveloperExample {
       System.exit(1);
     }
   }
-  private static void testShortUrl(LinkDeveloperSession lp) throws LinkDeveloperException {
+  private static void testShortUrl(LinkDeveloperSession ld) throws LinkDeveloperException {
     System.out.println("Creating Short URL...");
     System.out.println("  ShortTrigger.create()...");
-    ShortTrigger tr = ShortTrigger.create(lp, "My ShortTrigger");
+    ShortTrigger tr = ShortTrigger.create(ld, "My ShortTrigger");
     System.out.println("    Trigger Name: \"" + tr.getName() + "\"");
     System.out.println("    Trigger Id: \"" + tr.getId() + "\"");
     System.out.println("    Short URL: \"" + tr.getShortUrl() + "\"");
@@ -82,7 +82,7 @@ public class LinkDeveloperExample {
     for (String item : tr.getLinks().keySet())
       System.out.println("      " + item + ": " + tr.getLinks().get(item));
     System.out.println("  Payoff.create()...");
-    Payoff po = Payoff.create(lp, "My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
+    Payoff po = Payoff.create(ld, "My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
     System.out.println("    Payoff Name: \"" + po.getName() + "\"");
     System.out.println("    Payoff Id: \"" + po.getId() + "\"");
     System.out.println("    Payoff URL: \"" + po.getId() + "\"");
@@ -92,7 +92,7 @@ public class LinkDeveloperExample {
     for (String item : po.getLinks().keySet())
       System.out.println("      " + item + ": " + po.getLinks().get(item));
     System.out.println("  Link.create()...");
-    Link ln = Link.create(lp, "My Link", tr, po);
+    Link ln = Link.create(ld, "My Link", tr, po);
     System.out.println("    Link Name: \"" + ln.getName() + "\"");
     System.out.println("    [Trigger Id: \"" + ln.getTrigger().getId() + "\"]");
     System.out.println("    [Payoff Id: \"" + ln.getPayoff().getId() + "\"]");
@@ -109,7 +109,7 @@ public class LinkDeveloperExample {
     tr.update();
     System.out.println("    Confirming update() call...");
     System.out.println("      ShortTrigger.get()...");
-    ShortTrigger tr2 = (ShortTrigger)Trigger.get(lp, tr.getId());
+    ShortTrigger tr2 = (ShortTrigger)Trigger.get(ld, tr.getId());
     if (tr.getName() .equals (tr2.getName()))
       System.out.println("        yes, update() did work.");
     else
@@ -124,7 +124,7 @@ public class LinkDeveloperExample {
     po.update();
     System.out.println("    Confirming update() call...");
     System.out.println("      Payoff.get()...");
-    Payoff po2 = Payoff.get(lp, po.getId());
+    Payoff po2 = Payoff.get(ld, po.getId());
     if (po.getName() .equals (po2.getName()))
       System.out.println("        yes, update() did work.");
     else
@@ -139,7 +139,7 @@ public class LinkDeveloperExample {
     ln.update();
     System.out.println("    Confirming update() call...");
     System.out.println("      Link.get()...");
-    Link ln2 = Link.get(lp, ln.getId());
+    Link ln2 = Link.get(ld, ln.getId());
     if (ln.getName() .equals (ln2.getName()))
       System.out.println("        yes, update() did work.");
     else
@@ -155,7 +155,7 @@ public class LinkDeveloperExample {
     try {
       System.out.println("  Testing Link.get() on deleted object id...");
       // should not be able to get the deleted object now
-      ln = Link.get(lp, ID);
+      ln = Link.get(ld, ID);
     }
     catch (LinkDeveloperException e) {
       if (!e.getMessage().contains("HTTP Status 404 - Not Found")) {
@@ -172,10 +172,10 @@ public class LinkDeveloperExample {
     tr = null;
     System.out.println();
   }
-  private static void testQrCode(LinkDeveloperSession lp) throws LinkDeveloperException, IOException {
+  private static void testQrCode(LinkDeveloperSession ld) throws LinkDeveloperException, IOException {
     System.out.println("Creating QR Code...");
     System.out.println("  QrTrigger.create()...");
-    QrTrigger tr = QrTrigger.create(lp, "My QrTrigger");
+    QrTrigger tr = QrTrigger.create(ld, "My QrTrigger");
     System.out.println("    Trigger Name: \"" + tr.getName() + "\"");
     System.out.println("    Trigger Id: \"" + tr.getId() + "\"");
     System.out.println("    dateCreated: \"" + tr.getDateCreated() + "\"");
@@ -184,7 +184,7 @@ public class LinkDeveloperExample {
     for (String item : tr.getLinks().keySet())
       System.out.println("      " + item + ": " + tr.getLinks().get(item));
     System.out.println("  Payoff.create()...");
-    Payoff po = Payoff.create(lp, "My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
+    Payoff po = Payoff.create(ld, "My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
     System.out.println("    Payoff Name: \"" + po.getName() + "\"");
     System.out.println("    Payoff Id: \"" + po.getId() + "\"");
     System.out.println("    Payoff URL: \"" + po.getId() + "\"");
@@ -194,7 +194,7 @@ public class LinkDeveloperExample {
     for (String item : po.getLinks().keySet())
       System.out.println("      " + item + ": " + po.getLinks().get(item));
     System.out.println("  Link.create()...");
-    Link ln = Link.create(lp, "My Link", tr, po);
+    Link ln = Link.create(ld, "My Link", tr, po);
     System.out.println("    [Link Name: \"" + ln.getName() + "\"]");
     System.out.println("    [Trigger Id: \"" + ln.getTrigger().getId() + "\"]");
     System.out.println("    Payoff Id: \"" + ln.getPayoff().getId() + "\"");
@@ -222,7 +222,7 @@ public class LinkDeveloperExample {
     tr = null;
     System.out.println();
   }
-  private static void testWatermark(LinkDeveloperSession lp) throws LinkDeveloperException, IOException {
+  private static void testWatermark(LinkDeveloperSession ld) throws LinkDeveloperException, IOException {
     @SuppressWarnings("unused")
     String imageToBeWatermarkedLocalFile  = "Watermarks_20_Euro.jpg";
     String imageToBeWatermarkedUrl        = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
@@ -234,13 +234,13 @@ public class LinkDeveloperExample {
     System.out.println("      and uploading to storage service...");
     String uploaded_image_url = null;
     if (imageToBeWatermarked.contains("http"))
-      uploaded_image_url = ImageStorage.uploadJpgFromUrl(lp, imageToBeWatermarked);
+      uploaded_image_url = ImageStorage.uploadJpgFromUrl(ld, imageToBeWatermarked);
     else
-      uploaded_image_url = ImageStorage.uploadJpgFromFile(lp, imageToBeWatermarked);
+      uploaded_image_url = ImageStorage.uploadJpgFromFile(ld, imageToBeWatermarked);
     System.out.println("    uploaded image now available at:");
     System.out.println("      " + uploaded_image_url);
     System.out.println("  WmTrigger.create()...");
-    WmTrigger tr = WmTrigger.create(lp, "My WmTrigger", new WmTrigger.Strength(10), new WmTrigger.Resolution(75), uploaded_image_url);
+    WmTrigger tr = WmTrigger.create(ld, "My WmTrigger", new WmTrigger.Strength(10), new WmTrigger.Resolution(75), uploaded_image_url);
     System.out.println("    Trigger Name: \"" + tr.getName() + "\"");
     System.out.println("    Trigger Id: \"" + tr.getId() + "\"");
     System.out.println("    dateCreated: \"" + tr.getDateCreated() + "\"");
@@ -252,7 +252,7 @@ public class LinkDeveloperExample {
     for (String item : tr.getLinks().keySet())
       System.out.println("      " + item + ": " + tr.getLinks().get(item));
     System.out.println("  Payoff.create()...");
-    Payoff po = Payoff.create(lp, "My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
+    Payoff po = Payoff.create(ld, "My Payoff", Payoff.Type.WEB_PAYOFF, "http://www.hp.com");
     System.out.println("    Payoff Name: \"" + po.getName() + "\"");
     System.out.println("    Payoff Id: \"" + po.getId() + "\"");
     System.out.println("    Payoff URL: \"" + po.getId() + "\"");
@@ -262,7 +262,7 @@ public class LinkDeveloperExample {
     for (String item : po.getLinks().keySet())
       System.out.println("      " + item + ": " + po.getLinks().get(item));
     System.out.println("  Link.create()...");
-    Link ln = Link.create(lp, "My Link", tr, po);
+    Link ln = Link.create(ld, "My Link", tr, po);
     System.out.println("    [Link Name: \"" + ln.getName() + "\"]");
     System.out.println("    [Trigger Id: \"" + ln.getTrigger().getId() + "\"]");
     System.out.println("    Payoff Id: \"" + ln.getPayoff().getId() + "\"");
@@ -290,11 +290,11 @@ public class LinkDeveloperExample {
     tr = null;
     System.out.println();
   }
-  private static void testLists(LinkDeveloperSession lp) throws LinkDeveloperException {
+  private static void testLists(LinkDeveloperSession ld) throws LinkDeveloperException {
     System.out.println("Testing list() methods...");
     System.out.println("  (note: previously created objects were already deleted so you won't see them here)");
     System.out.println("  Getting List of Link objects...");
-    Map<String, Link> links = Link.list(lp);
+    Map<String, Link> links = Link.list(ld);
     System.out.println("    Found " + links.keySet().size() + " links.");
     for (String linkId : links.keySet()) {
       Link ln = links.get(linkId);
@@ -305,7 +305,7 @@ public class LinkDeveloperExample {
     }
     System.out.println();
     System.out.println("  Getting List of Trigger objects...");
-    Map<String, Trigger> triggers = Trigger.list(lp);
+    Map<String, Trigger> triggers = Trigger.list(ld);
     System.out.println("    Found " + triggers.keySet().size() + " triggers.");
     for (String triggerId : triggers.keySet()) {
       Trigger tr = triggers.get(triggerId);
@@ -314,7 +314,7 @@ public class LinkDeveloperExample {
     }
     System.out.println();
     System.out.println("  Getting List of Payoff objects...");
-    Map<String, Payoff> payoffs = Payoff.list(lp);
+    Map<String, Payoff> payoffs = Payoff.list(ld);
     System.out.println("    Found " + payoffs.keySet().size() + " payoffs.");
     for (String payoffId : payoffs.keySet()) {
       Payoff po = payoffs.get(payoffId);

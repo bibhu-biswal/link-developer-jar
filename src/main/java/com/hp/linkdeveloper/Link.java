@@ -13,31 +13,31 @@ public class Link extends BaseObject {
   /**
    * Returns a Map of all the Link objects for the given account.  The Map uses the Id of the object as the key.
    * The value in the Map is the Link object itself.
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @return Returns a Map of all Link objects.
    * @throws LinkDeveloperException
    */
   @SuppressWarnings("unchecked")
-  public static Map<String, Link> list(LinkDeveloperSession lp) throws LinkDeveloperException {
+  public static Map<String, Link> list(LinkDeveloperSession ld) throws LinkDeveloperException {
     Map<String, Link> returnList = new HashMap<String, Link>();
-    Map<String, Object> list = lp.rest_request(API_URL, Method.GET);
+    Map<String, Object> list = ld.rest_request(API_URL, Method.GET);
     for (Map<String, Object> data : (List<Map<String, Object>>) list.get(LIST_KEY)) {
-      Link item = new Link(lp, data);
+      Link item = new Link(ld, data);
       returnList.put(item.getId(), item);
     }
     return returnList;
   }
   /**
    * Obtains a Link object, given the id of the object.
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param id is the identifier for an existing Link object.
    * @return The Link object represented by the id is returned.
    * @throws LinkDeveloperException
    */
   @SuppressWarnings("unchecked")
-  public static Link get(LinkDeveloperSession lp, String id) throws LinkDeveloperException {
+  public static Link get(LinkDeveloperSession ld, String id) throws LinkDeveloperException {
     try {
-      return new Link(lp, (Map<String,Object>)(lp.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY)));
+      return new Link(ld, (Map<String,Object>)(ld.rest_request(API_URL + "/" + id, Method.GET).get(ITEM_KEY)));
     }
     catch (LinkDeveloperException e) {
       throw new LinkDeveloperException("Cannot create " + LinkDeveloperSession.capitalize(ITEM_KEY) + " object with ID of \"" + id + "\"! " + e.getMessage(), e);
@@ -45,31 +45,31 @@ public class Link extends BaseObject {
   }
   /**
    * Creates a Link object via a REST API POST call to the Link Developer API
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the Link object.
    * @param trigger is the Trigger object to be linked to the Payoff.
    * @param payoff is the Payoff object to be linked to the Trigger.
    * @return Returns a new Link object.
    * @throws LinkDeveloperException
    */
-  public static Link create(LinkDeveloperSession lp, String name, Trigger trigger, Payoff payoff) throws LinkDeveloperException {
-    return (new Link(lp, name, trigger, payoff)).save();
+  public static Link create(LinkDeveloperSession ld, String name, Trigger trigger, Payoff payoff) throws LinkDeveloperException {
+    return (new Link(ld, name, trigger, payoff)).save();
   }
   /**
    * Creates a Link object via a REST API POST call to the Link Developer API
-   * @param lp is the LinkDeveloperSession (which holds the access token for the user)
+   * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the Link object.
    * @param triggerId is the Id of the Trigger object to be linked to the Payoff.
    * @param payoffId is the Id of the Payoff object to be linked to the Trigger.
    * @return Returns a new Link object.
    * @throws LinkDeveloperException
    */
-  public static Link create(LinkDeveloperSession lp, String name, String triggerId, String payoffId) throws LinkDeveloperException {
-    return (new Link(lp, name, triggerId, payoffId)).save();
+  public static Link create(LinkDeveloperSession ld, String name, String triggerId, String payoffId) throws LinkDeveloperException {
+    return (new Link(ld, name, triggerId, payoffId)).save();
   }
   public Trigger getTrigger() throws LinkDeveloperException {
     if (trigger == null && getTriggerId().length() > 0)
-      trigger = Trigger.get(lp, getTriggerId());
+      trigger = Trigger.get(ld, getTriggerId());
     return trigger;
   }
   public String  getTriggerId() {
@@ -79,7 +79,7 @@ public class Link extends BaseObject {
   }
   public Payoff  getPayoff() throws LinkDeveloperException {
     if (payoff == null && getPayoffId().length() > 0)
-      payoff = Payoff.get(lp, getPayoffId());
+      payoff = Payoff.get(ld, getPayoffId());
     return payoff;
   }
   public String  getPayoffId() {
@@ -87,20 +87,20 @@ public class Link extends BaseObject {
       return payoff.getId();
     return payoffId;
   }
-  protected Link(LinkDeveloperSession lp, String name, Trigger trigger, Payoff payoff) {
-    this.lp = lp;
+  protected Link(LinkDeveloperSession ld, String name, Trigger trigger, Payoff payoff) {
+    this.ld = ld;
     setName(name);
     setTrigger(trigger);
     setPayoff(payoff);
   }
-  protected Link(LinkDeveloperSession lp, String name, String triggerId, String payoffId) {
-    this.lp = lp;
+  protected Link(LinkDeveloperSession ld, String name, String triggerId, String payoffId) {
+    this.ld = ld;
     setName(name);
     setTriggerId(triggerId);
     setPayoffId(payoffId);
   }
-  protected Link(LinkDeveloperSession lp, Map<String, Object> map) {
-    this.lp = lp;
+  protected Link(LinkDeveloperSession ld, Map<String, Object> map) {
+    this.ld = ld;
     this.assign_attributes(map);
   }
   protected void setTrigger(Trigger trigger) {
