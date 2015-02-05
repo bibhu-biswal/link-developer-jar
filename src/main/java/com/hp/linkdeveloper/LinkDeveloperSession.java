@@ -126,10 +126,10 @@ public class LinkDeveloperSession {
           access_token = "Bearer " + ResponseMap.get("accessToken");
           return access_token;
         }
-        if (tries > maxTries) {
+        if (++tries > maxTries) {
           System.out.println(responseCode);
           System.out.println(response.getEntity(String.class)); // This is sometimes an HTML formatted error message!
-          // throw response.getEntity(String.class)
+          throw new LinkDeveloperException("Unable to authenticate and obtain access token");
         }
       }
       catch (ClientHandlerException e) {
