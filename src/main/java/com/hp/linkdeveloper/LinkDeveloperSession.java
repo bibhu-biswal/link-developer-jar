@@ -162,7 +162,7 @@ public class LinkDeveloperSession {
     basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(StandardCharsets.UTF_8));
   }
   protected static Builder createWebResource(String location) {
-    return createWebResourceUnTagged(location).header("x_user_info", "app=link_developer_jar_v" + Version.JAR_VERSION);
+    return createWebResourceUnTagged(location).header("X-user-info", "app=link_developer_jar_v" + Version.JAR_VERSION);
   }
   protected static Builder createWebResourceUnTagged(String location) {
     disableCertificateValidation();
