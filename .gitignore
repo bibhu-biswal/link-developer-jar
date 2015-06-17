@@ -13,3 +13,4 @@ META-INF/
 target/classes/
 target/maven-archiver/
 target/maven-status/
+/target/

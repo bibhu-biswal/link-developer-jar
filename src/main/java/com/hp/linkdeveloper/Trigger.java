@@ -60,12 +60,7 @@ public abstract class Trigger extends BaseObject {
   public String getEndDate() {
     return endDate;
   }
-  public String getSubscriptionStartDate() {
-    return subscriptionStartDate;
-  }
-  public String getSubscriptionExpiryDate() {
-    return subscriptionExpiryDate;
-  }
+
   /**
    * Factory method to create a subtype of Trigger.
    * @param ld is the LinkDeveloperSession (which holds the access token for the user)
@@ -73,7 +68,8 @@ public abstract class Trigger extends BaseObject {
    * of the specified type.
    * @return Returns a Trigger object, of a concrete subtype class.
    */
-  protected static Trigger create(LinkDeveloperSession ld, Map<String, Object> map) {
+	protected static Trigger create(LinkDeveloperSession ld,
+			Map<String, Object> map) {
     String type = (String) map.get("type");
     if (type.equals("shorturl"))
       return new ShortTrigger(ld, map);
@@ -89,12 +85,7 @@ public abstract class Trigger extends BaseObject {
   protected void   setEndDate(String endDate) {
     this.endDate = endDate;
   }
-  protected void   setSubscriptionStartDate(String subscriptionStartDate) {
-    this.subscriptionStartDate = subscriptionStartDate;
-  }
-  protected void   setSubscriptionExpiryDate(String subscriptionExpiryDate) {
-    this.subscriptionExpiryDate = subscriptionExpiryDate;
-  }
+
   @Override
   protected String api_url() {
     return API_URL;
@@ -108,11 +99,6 @@ public abstract class Trigger extends BaseObject {
     setState(State.valueOf((String) data.get("state")));
     setStartDate((String) data.get("startDate"));
     setEndDate((String) data.get("endDate"));
-    if (data.get("subscription") != null) {
-      Map<String, String> subscription = (Map<String, String>) data.get("subscription");
-      setSubscriptionStartDate(subscription.get("startDate"));
-      setSubscriptionExpiryDate(subscription.get("expiryDate"));
-    }
   }
   @Override
   protected Map<String, Object> update_body() {
@@ -127,6 +113,4 @@ public abstract class Trigger extends BaseObject {
   private State state = State.UNINITIALIZED;
   private String startDate = "";
   private String endDate = "";
-  private String subscriptionStartDate = "";
-  private String subscriptionExpiryDate = "";
 }

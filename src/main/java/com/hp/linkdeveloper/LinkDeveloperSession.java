@@ -3,7 +3,7 @@ package com.hp.linkdeveloper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -63,10 +63,10 @@ public class LinkDeveloperSession {
    */
   public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForJpgImageToBeWatermarked, String imageUrlForPayoff) throws LinkDeveloperException {
     String    stored_image_url = ImageStorage.uploadJpgFromUrl(this, urlForJpgImageToBeWatermarked);
-    WmTrigger tr = WmTrigger.create(this, name, strength, resolution, stored_image_url);
+    WmTrigger tr = WmTrigger.create(this, name);
     Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
     Link.create(this, name, tr, po);
-    return tr.downloadWatermarkedJpgImage();
+    return tr.watermarkImage(stored_image_url, resolution, strength);
   }
   /**
    * This method allows specifying that network errors should be automatically retried.
@@ -159,7 +159,7 @@ public class LinkDeveloperSession {
       throw new IllegalArgumentException("Null arguments not accepted.");
     if (clientID.length() == 0 || secret.length() == 0)
       throw new IllegalArgumentException("Blank arguments not accepted.");
-    basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(StandardCharsets.UTF_8));
+    basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(Charset.defaultCharset()));
   }
   protected static Builder createWebResource(String location) {
     return createWebResourceUnTagged(location).header("X-user-info", "app=link_developer_jar_v" + Version.JAR_VERSION);

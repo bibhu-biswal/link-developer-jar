@@ -1,6 +1,6 @@
 package com.hp.linkdeveloper;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -302,7 +302,7 @@ public class Payoff extends BaseObject {
     Map<String, Object> richPayoffPrivateData = new HashMap<String, Object>();
     richPayoffPrivateData.put("content-type", getRichPayoffDataType());
     String richDataAsJson = JsonFactory.create().writeValueAsString(getRichPayoffData());
-    String richDataAsJsonBase64 = DatatypeConverter.printBase64Binary(richDataAsJson.getBytes(StandardCharsets.UTF_8));
+    String richDataAsJsonBase64 = DatatypeConverter.printBase64Binary(richDataAsJson.getBytes(Charset.defaultCharset()));
     richPayoffPrivateData.put("data", JsonFactory.create().writeValueAsString(richDataAsJsonBase64));
     Map<String, Object> richPayoffBody = new HashMap<String, Object>();
     richPayoffBody.put("version", "1");

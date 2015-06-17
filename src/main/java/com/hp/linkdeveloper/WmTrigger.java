@@ -5,50 +5,44 @@ import java.util.Map;
 import org.boon.json.JsonFactory;
 
 public class WmTrigger extends Trigger {
-  private static final String DEFAULT_SUBSCRIPTION = "month";
+
   /**
    * Creates a WmTrigger object via a REST API POST call to the Link Developer API
    * @param ld is the LinkDeveloperSession (which holds the access token for the user)
    * @param name is the name attribute to be given to the WmTrigger object.
-   * @param watermark strength value for watermarked image. The allowed value ranges from 1 to 10.
-   * @param resolution is the watermark resolution value for the watermarked image.  The allowed value ranges from 1 to 2400.
-   * @param urlForImageToBeWatermarked is the URL of the image that you want to be watermarked.
    * @return Returns a new WmTrigger object.
    * @throws LinkDeveloperException
    */
-  public static WmTrigger create(LinkDeveloperSession ld, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForImageToBeWatermarked) throws LinkDeveloperException {
-    return (new WmTrigger(ld, name, strength, resolution, urlForImageToBeWatermarked)).save();
+  public static WmTrigger create(LinkDeveloperSession ld, String name) throws LinkDeveloperException {
+    return (new WmTrigger(ld, name)).save();
   }
   /**
-   * Allows downloading of the watermarked image that this Trigger represents.
-   * @return Returns the byte array containing the image data.
+   * Applies this trigger to an image that was previously uploaded to the LPP storage server and whose URL is provided, and 
+   * returns a watermarked image with the provided watermark strength and watermark resolution. 
+   * @param resolution is the watermark resolution. The allowed values range from 1 to 2400. Optional
+   * @param strength is the watermark strength. The allowed values range from 1 to 10. Optional
+   * @param urlForImageToBeWatermarked is the URL of the uploaded image that you want to be watermarked with this trigger. Required 
+   * return Returns the byte array containing the image data.
    * @throws LinkDeveloperException
    */
-  public byte[]     downloadWatermarkedJpgImage() throws LinkDeveloperException {
-    return ImageStorage.download(ld, this, ImageStorage.Type.JPEG);
+  public byte[] watermarkImage(String urlForImageToBeWatermarked, Resolution resolution, Strength strength) throws LinkDeveloperException {
+	
+	if (urlForImageToBeWatermarked == null)
+		throw new IllegalArgumentException( "urlForImageToBeWatermarked can not be null ");
+	
+	String params = "?imageURL=" + urlForImageToBeWatermarked;
+	
+	if (strength != null) {
+		params = params + "&strength=" + strength.getStrength();
+	};
+
+	if (resolution != null) {
+		params = params + "&resolution=" + resolution.getResolution();
+	};		
+ 
+    return ImageStorage.download(ld, this, ImageStorage.Type.JPEG, params);
   }
-  public Strength   getStrength() {
-    return strength;
-  }
-  public void       setStrength(Strength strength) {
-    if (strength == null)
-      throw new IllegalArgumentException("Strength cannot be null.");
-    this.strength = strength;
-  }
-  public Resolution getResolution() {
-    return resolution;
-  }
-  public void       setResolution(Resolution resolution) {
-    if (resolution == null)
-      throw new IllegalArgumentException("Resolution cannot be null.");
-    this.resolution = resolution;
-  }
-  public String     getImageUrl() {
-    return imageUrl;
-  }
-  public void       setImageUrl(String imageUrl) {
-    this.imageUrl = imageUrl;
-  }
+
   public static class Resolution {
     public static final int MIN_RESOLUTION = 1;
     public static final int MAX_RESOLUTION = 2400;
@@ -97,12 +91,9 @@ public class WmTrigger extends Trigger {
     }
     private int strength = 0;
   }
-  protected WmTrigger(LinkDeveloperSession ld, String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageUrl) {
+  protected WmTrigger(LinkDeveloperSession ld, String name) {
     this.ld = ld;
     this.setName(name);
-    this.setImageUrl(imageUrl);
-    this.setStrength(strength);
-    this.setResolution(resolution);
   }
   protected WmTrigger(LinkDeveloperSession ld, Map<String, Object> map) {
     this.ld = ld;
@@ -130,62 +121,14 @@ public class WmTrigger extends Trigger {
       throw new IllegalArgumentException("Invalid state for this operation! (missing attribute: name)");
   }
   @Override
-  protected void assign_attributes(Map<String, Object> map) {
-    super.assign_attributes(map);
-    @SuppressWarnings("unchecked")
-    Map<String, Object> watermark = (Map<String, Object>) map.get("watermark");
-    if (watermark != null) {
-      setImageUrl((String) watermark.get("imageURL"));
-      resolution = new Resolution((Integer) watermark.get("resolution"));
-      strength = new Strength((Integer) watermark.get("strength"));
-    }
-    //@formatter:off
-    /*{
-       type=watermark,
-       id=PHDsCQzISqiy-lPvEVXpSw,
-       name=Business Card - Back 600ppi,
-       state=ACTIVE,
-       dateCreated=2015-01-13T21:27:59.000+0000,
-       dateModified=2015-01-13T21:27:59.000+0000,
-       startDate=2015-01-13T21:27:57.887+0000,
-       endDate=2017-01-13T21:27:57.887+0000,
-       link=[
-         {href=https://watermark.livepaperapi.com/watermark/v1/triggers/PHDsCQzISqiy-lPvEVXpSw/image,
-          rel=image},
-         {href=https://www.livepaperapi.com/analytics/v1/triggers/PHDsCQzISqiy-lPvEVXpSw,
-          rel=analytics},
-         {href=https://www.livepaperapi.com/api/v1/triggers/PHDsCQzISqiy-lPvEVXpSw,
-          rel=self}],
-       subscription={
-         expiryDate=2017-01-13T21:27:57.887+0000,
-         startDate=2015-01-13T21:27:57.887+0000},
-       watermark={
-         imageURL=https://storage.livepaperapi.com/objects/files/nbXURFpISzW7IVUZjD7rMA,
-         resolution=75,
-         strength=7}
-      }*/
-    //@formatter:on
-  }
-  @Override
   protected Map<String, Object> create_body() {
     Map<String, Object> body = new HashMap<String, Object>();
     Map<String, Object> trigger = new HashMap<String, Object>();
-    Map<String, Object> watermark = new HashMap<String, Object>();
-    Map<String, Object> subscription = new HashMap<String, Object>();
-    subscription.put("package", DEFAULT_SUBSCRIPTION);
-    watermark.put("outputImageFormat", "JPEG");
-    watermark.put("resolution", "" + this.resolution.getResolution());
-    watermark.put("strength", "" + this.strength.getStrength());
-    watermark.put("imageURL", imageUrl);
     trigger.put("name", getName());
-    trigger.put("watermark", watermark);
-    trigger.put("subscription", subscription);
+    trigger.put("type", "watermark");
     body.put("trigger", trigger);
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
     return body;
   }
-  private Strength   strength   = null;
-  private Resolution resolution = null;
-  private String     imageUrl   = "";
 }

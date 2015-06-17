@@ -5,7 +5,6 @@ import java.util.Map;
 import org.boon.json.JsonFactory;
 
 public class ShortTrigger extends Trigger {
-  private static final String DEFAULT_SUBSCRIPTION = "month";
   /**
    * Creates a ShortTrigger object via a REST API POST call to the Link Developer API
    * @param ld is the LinkDeveloperSession (which holds the access token for the user)
@@ -79,12 +78,9 @@ public class ShortTrigger extends Trigger {
   protected Map<String, Object> create_body() {
     Map<String, Object> body = new HashMap<String, Object>();
     Map<String, Object> trigger = new HashMap<String, Object>();
-    Map<String, Object> subscription = new HashMap<String, Object>();
     body.put("trigger", trigger);
     trigger.put("name", getName());
     trigger.put("type", "shorturl");
-    subscription.put("package", DEFAULT_SUBSCRIPTION);
-    trigger.put("subscription", subscription);
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
     return body;

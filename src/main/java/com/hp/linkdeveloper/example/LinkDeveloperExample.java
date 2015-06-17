@@ -225,7 +225,7 @@ public class LinkDeveloperExample {
   private static void testWatermark(LinkDeveloperSession ld) throws LinkDeveloperException, IOException {
     @SuppressWarnings("unused")
     String imageToBeWatermarkedLocalFile  = "Watermarks_20_Euro.jpg";
-    String imageToBeWatermarkedUrl        = "http://upload.wikimedia.org/wikipedia/commons/8/82/Watermarks_20_Euro.jpg";
+    String imageToBeWatermarkedUrl        = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Ruine_Aggstein_02.JPG/1280px-Ruine_Aggstein_02.JPG";
     String imageToBeWatermarked           = imageToBeWatermarkedUrl;
     System.out.println("Creating Watermarked Image...");
     System.out.println("  Image.upload()...");
@@ -240,14 +240,11 @@ public class LinkDeveloperExample {
     System.out.println("    uploaded image now available at:");
     System.out.println("      " + uploaded_image_url);
     System.out.println("  WmTrigger.create()...");
-    WmTrigger tr = WmTrigger.create(ld, "My WmTrigger", new WmTrigger.Strength(10), new WmTrigger.Resolution(75), uploaded_image_url);
+    WmTrigger tr = WmTrigger.create(ld, "My WmTrigger");
     System.out.println("    Trigger Name: \"" + tr.getName() + "\"");
     System.out.println("    Trigger Id: \"" + tr.getId() + "\"");
     System.out.println("    dateCreated: \"" + tr.getDateCreated() + "\"");
     System.out.println("    dateModified: \"" + tr.getDateModified() + "\"");
-    System.out.println("    strength: \"" + tr.getStrength().toString() + "\"");
-    System.out.println("    resolution: \"" + tr.getResolution().toString() + "\"");
-    System.out.println("    imageUrl: \"" + tr.getImageUrl() + "\"");
     System.out.println("    Links:");
     for (String item : tr.getLinks().keySet())
       System.out.println("      " + item + ": " + tr.getLinks().get(item));
@@ -271,8 +268,13 @@ public class LinkDeveloperExample {
     System.out.println("    Links:");
     for (String item : ln.getLinks().keySet())
       System.out.println("      " + item + ": " + ln.getLinks().get(item));
-    System.out.println("  Downloading watermarked image...");
-    byte[] wmbytes = tr.downloadWatermarkedJpgImage();
+    System.out.println("  Adding watermark to image...");
+    WmTrigger.Resolution resolution = new WmTrigger.Resolution(75);
+    WmTrigger.Strength strength = new WmTrigger.Strength(10);
+    byte[] wmbytes = tr.watermarkImage(uploaded_image_url, resolution, strength);
+    System.out.println("    strength: \"" + resolution.toString() + "\"");
+    System.out.println("    resolution: \"" + strength.toString() + "\"");
+    System.out.println("    imageUrl: \"" + uploaded_image_url + "\"");
     String wm_img_out = "image_watermark_" + sdf.format(Calendar.getInstance().getTime()) + ".jpg";
     FileOutputStream fos = new FileOutputStream(wm_img_out);
     fos.write(wmbytes);
