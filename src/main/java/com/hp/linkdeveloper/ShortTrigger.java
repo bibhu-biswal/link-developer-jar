@@ -19,12 +19,10 @@ public class ShortTrigger extends Trigger {
     return getLinks().get("shortURL");
   }
   protected ShortTrigger(LinkDeveloperSession ld, String name) {
-    this.ld = ld;
-    this.setName(name);
+    super(ld, name);
   }
   protected ShortTrigger(LinkDeveloperSession ld, Map<String, Object> map) {
-    this.ld = ld;
-    this.assign_attributes(map);
+    super(ld, map);
   }
   /**
    * Create this object via the API by doing a POST
@@ -81,6 +79,8 @@ public class ShortTrigger extends Trigger {
     body.put("trigger", trigger);
     trigger.put("name", getName());
     trigger.put("type", "shorturl");
+    trigger.put("startDate", this.getStartDate());
+    trigger.put("endDate", this.getEndDate());
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
     return body;

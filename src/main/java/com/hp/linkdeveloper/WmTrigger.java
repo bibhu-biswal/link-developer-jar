@@ -92,12 +92,11 @@ public class WmTrigger extends Trigger {
     private int strength = 0;
   }
   protected WmTrigger(LinkDeveloperSession ld, String name) {
-    this.ld = ld;
-    this.setName(name);
+	  super(ld, name);
   }
+  
   protected WmTrigger(LinkDeveloperSession ld, Map<String, Object> map) {
-    this.ld = ld;
-    this.assign_attributes(map);
+	  super(ld, map);
   }
   /**
    * Create this object via the API by doing a POST
@@ -126,6 +125,8 @@ public class WmTrigger extends Trigger {
     Map<String, Object> trigger = new HashMap<String, Object>();
     trigger.put("name", getName());
     trigger.put("type", "watermark");
+    trigger.put("startDate", this.getStartDate());
+    trigger.put("endDate", this.getEndDate());
     body.put("trigger", trigger);
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);

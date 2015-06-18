@@ -1,9 +1,14 @@
 package com.hp.linkdeveloper;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.boon.json.JsonFactory;
+
 import com.hp.linkdeveloper.LinkDeveloperSession.Method;
 
 public abstract class Trigger extends BaseObject {
@@ -11,6 +16,23 @@ public abstract class Trigger extends BaseObject {
   protected static final String ITEM_KEY = "trigger";
   protected static final String LIST_KEY = "triggers";
   public enum State { ACTIVE, DISABLED, INACTIVE, UNINITIALIZED };
+  
+  /**
+   * Constructors - initializes the trigger end date to one year from now.
+   */
+  
+  protected Trigger(LinkDeveloperSession ld, String name) {
+    this.ld = ld;
+    this.setName(name);
+    this.setEndDateToOneYearFromNow();
+  }
+  
+  protected Trigger(LinkDeveloperSession ld, Map<String, Object> map) {
+    this.ld = ld;
+    this.assign_attributes(map);
+    this.setEndDateToOneYearFromNow();
+  }
+  
   /**
    * Returns a Map of all the Trigger objects for the given account.  The Map uses the Id of the object as the key.
    * The value in the Map is the Trigger object itself.
@@ -86,6 +108,14 @@ public abstract class Trigger extends BaseObject {
     this.endDate = endDate;
   }
 
+  protected void   setEndDateToOneYearFromNow() {
+	  Calendar cal = Calendar.getInstance();
+	  cal.add(Calendar.YEAR, 1); // to get previous year add -1
+	  Date nextYear = cal.getTime();
+      SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");     
+	  this.endDate = format.format(nextYear);
+  }
+
   @Override
   protected String api_url() {
     return API_URL;
@@ -106,11 +136,13 @@ public abstract class Trigger extends BaseObject {
     Map<String, Object> trigger = new HashMap<String, Object>();
     body.put("trigger", trigger);
     trigger.put("name", getName());
+    trigger.put("startDate", this.getStartDate());
+    trigger.put("endDate", this.getEndDate());
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
     return body;
   }
   private State state = State.UNINITIALIZED;
-  private String startDate = "";
+  private String startDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date());
   private String endDate = "";
 }

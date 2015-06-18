@@ -78,6 +78,8 @@ public class LinkDeveloperExample {
     System.out.println("    Short URL: \"" + tr.getShortUrl() + "\"");
     System.out.println("    Short dateCreated: \"" + tr.getDateCreated() + "\"");
     System.out.println("    Short dateModified: \"" + tr.getDateModified() + "\"");
+    System.out.println("    startDate: \"" + tr.getStartDate() + "\"");
+    System.out.println("    endDate: \"" + tr.getEndDate() + "\"");
     System.out.println("    Links:");
     for (String item : tr.getLinks().keySet())
       System.out.println("      " + item + ": " + tr.getLinks().get(item));
@@ -180,6 +182,8 @@ public class LinkDeveloperExample {
     System.out.println("    Trigger Id: \"" + tr.getId() + "\"");
     System.out.println("    dateCreated: \"" + tr.getDateCreated() + "\"");
     System.out.println("    dateModified: \"" + tr.getDateModified() + "\"");
+    System.out.println("    startDate: \"" + tr.getStartDate() + "\"");
+    System.out.println("    endDate: \"" + tr.getEndDate() + "\"");
     System.out.println("    Links:");
     for (String item : tr.getLinks().keySet())
       System.out.println("      " + item + ": " + tr.getLinks().get(item));
@@ -245,6 +249,8 @@ public class LinkDeveloperExample {
     System.out.println("    Trigger Id: \"" + tr.getId() + "\"");
     System.out.println("    dateCreated: \"" + tr.getDateCreated() + "\"");
     System.out.println("    dateModified: \"" + tr.getDateModified() + "\"");
+    System.out.println("    startDate: \"" + tr.getStartDate() + "\"");
+    System.out.println("    endDate: \"" + tr.getEndDate() + "\"");
     System.out.println("    Links:");
     for (String item : tr.getLinks().keySet())
       System.out.println("      " + item + ": " + tr.getLinks().get(item));
