@@ -4,9 +4,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
+import org.boon.json.JsonFactory;
+
 import com.hp.linkdeveloper.ImageStorage;
 import com.hp.linkdeveloper.Link;
 import com.hp.linkdeveloper.LinkDeveloperException;
@@ -56,10 +62,11 @@ public class LinkDeveloperExample {
         LinkDeveloperSession ld = LinkDeveloperSession.create(id, secret);
         boolean t = true;
         boolean f = false;
-        if (t) testShortUrl(ld);
-        if (t) testQrCode(ld);
-        if (t) testWatermark(ld);
-        if (t) testLists(ld);
+        if (f) testShortUrl(ld);
+        if (f) testQrCode(ld);
+        if (f) testWatermark(ld);
+        if (f) testLists(ld);
+        if (t) testRichPayoff();
         System.out.println("All done with tests!");
       }
     }
@@ -69,6 +76,124 @@ public class LinkDeveloperExample {
       System.exit(1);
     }
   }
+  private static void testRichPayoff() throws LinkDeveloperException, IOException {
+    /**
+    * Authenticate with your credentials
+    */
+//    String id = "YOUR CLIENT ID HERE";
+//    String secret = "YOUR SECRET HERE";
+    String id = "chyyv91wvhbtv7pg36z22maos46wnc3y";
+    String secret = "nmG8zWxCV8mFTXOXFdXgHYRMWFg8CFAv";
+    LinkDeveloperSession ld = LinkDeveloperSession.create(id, secret);
+
+    
+    /**
+    * upload local jpg image file to File Storage Service and save its url for later use
+    */
+//    String localImageFileName = "Watermarks_20_Euro.jpg";
+//    String imageURL = ImageStorage.uploadJpgFromFile(ld, localImageFileName);
+    String localImageFileName = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Ruine_Aggstein_02.JPG/1280px-Ruine_Aggstein_02.JPG";
+    String imageURL = ImageStorage.uploadJpgFromUrl(ld, localImageFileName);
+    /**
+    * create a trigger of type watermark. This IS NOT the watermarked image that you scan
+    */
+    WmTrigger tr = WmTrigger.create(ld, "YOUR WATERMARK NAME HERE");
+
+    /**
+    * create a payoff of type rich payoff
+    */
+    
+    /*
+     * First, create the payoff content. In this example the content is of type video
+     */
+    String videoThumbnailURL = "http://cdn2.hellogiggles.com/wp-content/uploads/2013/12/09/a-cutest-puppies-11.jpg";
+    String videoURL = "https://youtu.be/gc0FMWVNelY";
+    
+    Map<String, Object> contentData = new HashMap<String, Object>();
+    contentData.put("URL", videoURL);
+    contentData.put("imageURL", videoThumbnailURL);
+    contentData.put("fullscreen", true);
+    contentData.put("autoplay", true);
+    
+    Map<String, Object> content = new HashMap<String, Object>();
+    content.put("type","video");
+    content.put("label", "YOUR CONTENT TITLE HERE");
+    content.put("data", contentData);
+    
+
+    /*
+     * Then, create a phone call action
+     */
+    Map<String, Object> phoneCallIcon = new HashMap<String, Object>();
+    phoneCallIcon.put("id", "568");
+    Map<String, Object> phoneCallData = new HashMap<String, Object>();
+    phoneCallData.put("number", "123-456-789");
+    Map<String, Object> phoneCallAction = new HashMap<String, Object>();
+    phoneCallAction.put("type", "call");
+    phoneCallAction.put("label", "Call Us");
+    phoneCallAction.put("icon", phoneCallIcon);
+    phoneCallAction.put("data", phoneCallData);
+    
+    /*
+     * And also create an sms action
+     */
+    Map<String, Object> smsIcon = new HashMap<String, Object>();
+    smsIcon.put("id", "579");
+    Map<String, Object> smsData = new HashMap<String, Object>();
+    smsData.put("number", "123-456-789");
+    smsData.put("text", "YOUR TEXT MESSAGE HERE");
+    Map<String, Object> smsAction = new HashMap<String, Object>();
+    smsAction.put("type", "sms");
+    smsAction.put("label", "Send This");
+    smsAction.put("icon", smsIcon);
+    smsAction.put("data", smsData);
+    
+    /*
+     * Create the actions array
+     */
+    List<Map<String, Object>> actions = new ArrayList<Map<String, Object>>();
+    actions.add(phoneCallAction);
+    actions.add(smsAction);
+    
+    /*
+     * Create the rich payoff data
+     */
+    Map<String, Object> richPayoffData = new HashMap<String, Object>();
+    richPayoffData.put("content", content);
+    richPayoffData.put("actions", actions);
+    
+    
+    /*
+     * Create the rich payoff with the data
+     */
+    String destinationURL = "YOUR DESTINATION URL HERE";
+    Payoff po = Payoff.create(ld, "YOUR PAYOFF NAME HERE", Payoff.Type.RICH_PAYOFF, destinationURL);
+    po.setRichPayoffData(richPayoffData);
+
+    /**
+    * create a link between trigger and payoff
+    */
+    Link ln = Link.create(ld, "YOUR LINK NAME HERE", tr, po);
+
+    /**
+    * add watermark to the previously uploaded image with the given strength and resolution, and download the
+    * watermarked bytes
+    * note: the API does not returns a file, it returns the watermarked image bytes
+    * you need to save the bytes into a file
+    */
+    WmTrigger.Strength strength = new WmTrigger.Strength(10);
+    WmTrigger.Resolution resolution = new WmTrigger.Resolution(75);
+    byte[] watermarkedBytes = tr.watermarkImage(imageURL, resolution, strength);
+
+    /**
+    * write the watermarked image bytes into a local file
+    */
+    String localWatermarkedImageFile = "image_watermarked_" + sdf.format(Calendar.getInstance().getTime()) + ".jpg";
+    FileOutputStream fos = new FileOutputStream(localWatermarkedImageFile);
+    fos.write(watermarkedBytes);
+    fos.close();
+  }
+  
   private static void testShortUrl(LinkDeveloperSession ld) throws LinkDeveloperException {
     System.out.println("Creating Short URL...");
     System.out.println("  ShortTrigger.create()...");
