@@ -10,7 +10,7 @@ build the JAR with "mvn package".  Maven is configured (in pom.xml) to
 use Java 1.8.
 
 If you are using a version of Java older than 1.8, you will get
-an error "invalid target release: 1.8" from maven.  If you have Java
+an error "invalid target release: X.X" from maven.  If you have Java
 1.8 installed, and need to tell maven where it is, use the JAVA_HOME
 variable.  (edit the script script/set_JAVA_HOME and then load
 it with "source script/set_JAVA_HOME").
