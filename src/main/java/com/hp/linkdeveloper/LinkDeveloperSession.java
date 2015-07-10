@@ -61,7 +61,7 @@ public class LinkDeveloperSession {
    * @param name A string used to assign names to the trigger, payoff, and link objects created
    * @param strength A watermark strength from 1-10 (1 will result in a weak, poorly scanning watermark, 10 in a very strong and visible watermark)
    * @param resolution Watermark resolution.  See https://link-creation-studio-resources.s3.amazonaws.com/learn/resources/Link_Digital_Watermarking_Guide.pdf
-   * @param imageToBeWatermarked The the URL or file name where the image to be watermarked is stored (Note that if the image
+   * @param imageToBeWatermarked The URL or file name where the image to be watermarked is stored (Note that if the image
    * is not being hosted on the Link Developer Storage service, then the image will be copied to Link Developer Storage)
    * @param imageUrlForPayoff The URL to be encoded in the watermarked image.
    * @return The byte array containing the watermarked image.
