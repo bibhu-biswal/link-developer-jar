@@ -33,7 +33,8 @@ public class LinkDeveloperSession {
   }
   /**
    * Shortens the url passed as the argument.
-   * @param longURL The URL that needs to be shortened.
+   * @param name A string used to assign names to the trigger, payoff, and link objects created
+   * @param url The URL that needs to be shortened.
    * @return The shortened URL or null if passed string is null, or if access is unauthorized, or in case of server error.
    */
   public String createShortUrl(String name, String url) throws LinkDeveloperException {
@@ -44,7 +45,9 @@ public class LinkDeveloperSession {
   }
   /**
    * Returns a byte representation of the QR code that encodes the passed URL.
+   * @param name A string used to assign names to the trigger, payoff, and link objects created
    * @param url The URL that needs to be QR-coded.
+   * @param width The width of the QR code image, in pixels.
    * @return The byte representation of the QR code or null if passed string is null, or if access is unauthorized, or in case of server error.
    */
   public byte[] createQrCode(String name, String url, int width) throws LinkDeveloperException {
@@ -55,14 +58,22 @@ public class LinkDeveloperSession {
   }
   /**
    * Returns a byte representation of the watermarked JPEG image that encodes the passed URL.
-   * @param imageLoc The the URL where the image to be watermarked is hosted (Note that if the image
+   * @param name A string used to assign names to the trigger, payoff, and link objects created
+   * @param strength A watermark strength from 1-10 (1 will result in a weak, poorly scanning watermark, 10 in a very strong and visible watermark)
+   * @param resolution Watermark resolution.  See https://link-creation-studio-resources.s3.amazonaws.com/learn/resources/Link_Digital_Watermarking_Guide.pdf
+   * @param imageToBeWatermarked The the URL or file name where the image to be watermarked is stored (Note that if the image
    * is not being hosted on the Link Developer Storage service, then the image will be copied to Link Developer Storage)
-   * @param url The URL to be encoded in the watermarked image.
+   * @param imageUrlForPayoff The URL to be encoded in the watermarked image.
    * @return The byte array containing the watermarked image.
-   * @throws LinkDeveloperException
+   * @throws LinkDeveloperException, IOException
    */
-  public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String urlForJpgImageToBeWatermarked, String imageUrlForPayoff) throws LinkDeveloperException {
-    String    stored_image_url = ImageStorage.uploadJpgFromUrl(this, urlForJpgImageToBeWatermarked);
+  public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageToBeWatermarked, String imageUrlForPayoff) throws LinkDeveloperException, IOException {
+    String    stored_image_url = null;
+    if (imageToBeWatermarked.startsWith("http://") || imageToBeWatermarked.startsWith("https://")) {
+    	stored_image_url = ImageStorage.uploadJpgFromUrl(this, imageToBeWatermarked);
+    } else {
+    	stored_image_url = ImageStorage.uploadJpgFromFile(this, imageToBeWatermarked);
+    }
     WmTrigger tr = WmTrigger.create(this, name);
     Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
     Link.create(this, name, tr, po);

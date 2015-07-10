@@ -47,25 +47,25 @@ java -cp $cp:./target/linkdeveloper-X.Y.Z.jar com.hp.linkdeveloper.example.LinkD
 ### Authenticate
 
 The Link Developer JAR requires authentication with two keys: your id key
-and secret key.  These are shown in the green box on the [Link Developer Authentication](https://www.linkcreationstudio.com/api/doc/auth/) page.
+and secret key.  These are shown in the green box on the [Link Developer Authentication](https://www.linkcreationstudio.com/developer/doc/auth/) page.
 
 
 ```java
-LinkDeveloper ld = LinkDeveloper.auth("your client id", "your client secret");
+LinkDeveloperSession ld = LinkDeveloperSession.create("your client id", "your client secret");
 ```
 
 ### Shortening URLs
 
 ```java
-String short_url = ld.shorten("http://www.google.com");
+String short_url = ld.createShortUrl("Short URL to Google", "http://www.google.com");
 ```
 
 ### Generating QR Codes
 
 ```java
-byte[] qrbytes = ld.qr_bytes("http://www.amazon.com");
+byte[] qrBytes = ld.createQrCode("QR Code for Amazon", "http://www.amazon.com", 200 /* width in pixels */);
 FileOutputStream fos = new FileOutputStream("qrcode.png");
-fos.write(qrbytes);
+fos.write(qrBytes);
 fos.close();
 ```
 
@@ -73,9 +73,24 @@ fos.close();
 > bytes. A future version may host publicly accessible QR images.
 
 ### Watermarking Images
-
+#### Applying watermark to a remotely hosted image file
 ```java
-byte[] wm_bytes = ld.watermark_bytes("http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg","http://www.hp.com");
+byte[] wm_bytes = ld.createWatermarkedJpgImage("Watermark link to HP", 
+                                               new WmTrigger.Strength(7),
+                                               new WmTrigger.Resolution(72),
+                                               "http://www.letsstartsmall.com/ITSE2313_WebAuthoring/images/unit3/jpg_example1.jpg","http://www.hp.com",
+                                               "http://www.hp.com");
+FileOutputStream fos = new FileOutputStream("wm.jpg");
+fos.write(wm_bytes);
+fos.close();
+```
+#### Applying watermark to a local image file
+```java
+byte[] wm_bytes = ld.createWatermarkedJpgImage("Watermark link to HP", 
+                                               new WmTrigger.Strength(7),
+                                               new WmTrigger.Resolution(72),
+                                               "/path/to/local/image/file",
+                                               "http://www.hp.com");
 FileOutputStream fos = new FileOutputStream("wm.jpg");
 fos.write(wm_bytes);
 fos.close();
