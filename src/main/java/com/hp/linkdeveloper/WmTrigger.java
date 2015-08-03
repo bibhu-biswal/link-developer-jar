@@ -107,6 +107,16 @@ public class WmTrigger extends Trigger {
   protected WmTrigger save() throws LinkDeveloperException {
     return (WmTrigger) super.save();
   }
+  
+  /**
+   * Create this object via the API by doing a POST
+   * @return
+   * @throws LinkDeveloperException
+   */
+  @Override
+public void delete() throws LinkDeveloperException {
+     super.delete();
+  }
   @Override
   protected WmTrigger parse(Map<String, Object> responseMap) {
     @SuppressWarnings("unchecked")

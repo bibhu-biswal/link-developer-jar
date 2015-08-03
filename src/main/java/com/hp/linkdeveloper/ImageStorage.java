@@ -114,22 +114,25 @@ public class ImageStorage {
           builder.header("Authorization", ld.getAccessToken());
         ClientResponse response = builder.get(ClientResponse.class);
         if (response.getStatus() != 200) {
-          @SuppressWarnings("unchecked")
-          Map<String, Object> map = JsonFactory.create().readValue(response.getEntity(String.class), Map.class);
-          throw new LinkDeveloperException(map.toString()); // throw to handler below, for retry support
+         // @SuppressWarnings("unchecked")
+         // Map<String, Object> map = JsonFactory.create().readValue(response.getEntity(String.class), Map.class);
+          throw new LinkDeveloperException(response.getEntity(String.class)); // throw to handler below, for retry support
         }
         return LinkDeveloperSession.inputStreamToByteArray(response.getEntityInputStream());
       }
       catch (IOException | ClientHandlerException | LinkDeveloperException e) {
-        if (++tries >= maxTries)
-          throw new LinkDeveloperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
-        System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
-        System.err.println("  (error was \"" + e.getMessage() + "\")");
+        if (++tries >= maxTries){
+            System.err.println("Warning: Network error! retrying (" + tries + " of " + maxTries + ")...");
+            System.err.println("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")");
+          //throw new LinkDeveloperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
+            throw new LinkDeveloperException("Failed to download: "+e.getMessage(),e);
+        }
         try {
           Thread.sleep(LinkDeveloperSession.getNetworkErrorRetrySleepPeriod());
         }
         catch (InterruptedException e1) {
-          throw new LinkDeveloperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
+         // throw new LinkDeveloperException("Failed to download \"" + imageType + "\" image! (from " + imageUrl + ")", e);
+            throw new LinkDeveloperException("Failed to download: "+e.getMessage(),e);
         }
         continue;
       }

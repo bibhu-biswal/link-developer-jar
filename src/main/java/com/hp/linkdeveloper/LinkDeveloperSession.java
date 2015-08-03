@@ -31,6 +31,11 @@ public class LinkDeveloperSession {
   public static LinkDeveloperSession create(String clientId, String secretId) {
     return new LinkDeveloperSession(clientId, secretId);
   }
+  
+  public static LinkDeveloperSession create(String basicAuth) {
+      return new LinkDeveloperSession(basicAuth);
+   }
+  
   /**
    * Shortens the url passed as the argument.
    * @param name A string used to assign names to the trigger, payoff, and link objects created
@@ -67,19 +72,37 @@ public class LinkDeveloperSession {
    * @return The byte array containing the watermarked image.
    * @throws LinkDeveloperException, IOException
    */
-  public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution, String imageToBeWatermarked, String imageUrlForPayoff) throws LinkDeveloperException, IOException {
-    String    stored_image_url = null;
-    if (imageToBeWatermarked.startsWith("http://") || imageToBeWatermarked.startsWith("https://")) {
-    	stored_image_url = ImageStorage.uploadJpgFromUrl(this, imageToBeWatermarked);
-    } else {
-    	stored_image_url = ImageStorage.uploadJpgFromFile(this, imageToBeWatermarked);
+    public byte[] createWatermarkedJpgImage(String name, WmTrigger.Strength strength, WmTrigger.Resolution resolution,
+            String imageToBeWatermarked, String imageUrlForPayoff) throws LinkDeveloperException, IOException {
+        WmTrigger tr = null;
+        Payoff po = null;
+        Link li = null;
+
+        try {
+            String stored_image_url = null;
+            if (imageToBeWatermarked.startsWith("http://") || imageToBeWatermarked.startsWith("https://")) {
+                stored_image_url = ImageStorage.uploadJpgFromUrl(this, imageToBeWatermarked);
+            } else {
+                stored_image_url = ImageStorage.uploadJpgFromFile(this, imageToBeWatermarked);
+            }
+            tr = WmTrigger.create(this, name);
+            po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
+            li = Link.create(this, name, tr, po);
+            return tr.watermarkImage(stored_image_url, resolution, strength);
+        } catch (LinkDeveloperException | IOException e1) {
+            rollback(tr, po, li);
+            throw new LinkDeveloperException(e1.getMessage());
+        }
     }
-    WmTrigger tr = WmTrigger.create(this, name);
-    Payoff    po = Payoff.create(this, name, Payoff.Type.WEB_PAYOFF, imageUrlForPayoff);
-    Link.create(this, name, tr, po);
-    return tr.watermarkImage(stored_image_url, resolution, strength);
-  }
-  /**
+
+    private void rollback(WmTrigger tr, Payoff po, Link li) throws LinkDeveloperException {
+        if (li != null && !li.getId().equalsIgnoreCase("")) {
+            li.delete();
+            tr.delete();
+            po.delete();
+        }
+    }
+/**
    * This method allows specifying that network errors should be automatically retried.
    * @param retryCount specifies the number of times to retry in the face of a network error.
    * This parameter defaults to zero (there will be zero/no retries in case of a network failure)
@@ -172,6 +195,15 @@ public class LinkDeveloperSession {
       throw new IllegalArgumentException("Blank arguments not accepted.");
     basic_auth = "Basic " + DatatypeConverter.printBase64Binary((clientID + ":" + secret).getBytes(Charset.defaultCharset()));
   }
+  
+  protected LinkDeveloperSession(String basicAuth) {
+      if (basicAuth == null)
+        throw new IllegalArgumentException("Null arguments not accepted.");
+      if (basicAuth.length() == 0)
+        throw new IllegalArgumentException("Blank arguments not accepted.");
+      basic_auth = basicAuth;
+    }
+  
   protected static Builder createWebResource(String location) {
     return createWebResourceUnTagged(location).header("X-user-info", "app=link_developer_jar_v" + Version.JAR_VERSION);
   }
@@ -295,8 +327,9 @@ public class LinkDeveloperSession {
       }
     }
     if (method == Method.DELETE && responseCode == 204 ||
-        method == Method.DELETE && responseCode == 200    )
-      return null;
+        method == Method.DELETE && responseCode == 200    ){
+        System.out.println("Deleted");
+      return null;}
     if (   method == Method.GET  && responseCode == 200
         || method == Method.PUT  && responseCode == 200
         || method == Method.POST && responseCode == 201 ) {
