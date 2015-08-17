@@ -135,8 +135,8 @@ public void delete() throws LinkDeveloperException {
     Map<String, Object> trigger = new HashMap<String, Object>();
     trigger.put("name", getName());
     trigger.put("type", "watermark");
-    trigger.put("startDate", this.getStartDate());
-    trigger.put("endDate", this.getEndDate());
+    //trigger.put("startDate", this.getStartDate());
+    //trigger.put("endDate", this.getEndDate());
     body.put("trigger", trigger);
     @SuppressWarnings("unused")
     String bodytxt = JsonFactory.create().writeValueAsString(body);
